@@ -67,9 +67,22 @@ export async function scrapePlaylist(
   // D1 limits bound parameters per query; batch to stay under the limit
   const BATCH_SIZE = 10
   const rows = parsed.map(v => ({ ...v, playlist_id }))
+  const insertedVideos: { id: number; title: string; artist: string }[] = []
+
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-    await db.insert(videos).values(rows.slice(i, i + BATCH_SIZE))
+    const inserted = await db.insert(videos).values(rows.slice(i, i + BATCH_SIZE)).returning({
+      id: videos.id,
+      title: videos.title,
+      artist: videos.artist,
+    })
+    insertedVideos.push(...inserted)
   }
+
+  await Promise.all(
+    insertedVideos.map(v =>
+      env.YOUTUBE_QUEUE.send({ video_id: v.id, title: v.title, artist: v.artist })
+    )
+  )
 
   await db
     .update(playlists)

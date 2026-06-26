@@ -1,11 +1,13 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import type { Env, PlaylistQueueMessage } from './types'
+import type { Env, PlaylistQueueMessage, YoutubeQueueMessage } from './types'
 import { playlistRoutes } from './routes/playlists'
 import { videoRoutes } from './routes/videos'
 import { adminRoutes } from './routes/admin'
 import { runScrape } from './cron/scraper'
 import { scrapePlaylist } from './cron/playlistScraper'
+import { searchYoutube, QuotaError } from './cron/youtubeScraper'
+import { requeueUnmatchedVideos } from './cron/youtubeRetry'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -18,19 +20,32 @@ app.route('/api/admin', adminRoutes)
 export default {
   fetch: app.fetch,
 
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(runScrape(env))
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    switch (event.cron) {
+      case '0 6 * * 6': return ctx.waitUntil(runScrape(env))           // Saturday scrape
+      case '0 9 * * *': return ctx.waitUntil(requeueUnmatchedVideos(env)) // Daily YouTube retry
+    }
   },
 
-  async queue(batch: MessageBatch<PlaylistQueueMessage>, env: Env): Promise<void> {
+  async queue(batch: MessageBatch<PlaylistQueueMessage | YoutubeQueueMessage>, env: Env): Promise<void> {
     for (const message of batch.messages) {
-      const { playlist_id, source_url } = message.body
       try {
-        await scrapePlaylist(env, playlist_id, source_url)
+        if (batch.queue === 'rage2-playlist-scrape') {
+          const { playlist_id, source_url } = message.body as PlaylistQueueMessage
+          await scrapePlaylist(env, playlist_id, source_url)
+        } else if (batch.queue === 'rage2-youtube-search') {
+          const { video_id, title, artist } = message.body as YoutubeQueueMessage
+          await searchYoutube(env, video_id, title, artist)
+        }
         message.ack()
       } catch (err) {
-        console.error(`Failed to scrape playlist ${playlist_id}:`, err)
-        message.retry()
+        if (err instanceof QuotaError) {
+          console.error(`YouTube quota exceeded, dropping message:`, err)
+          message.ack()
+        } else {
+          console.error(`Failed to process message on ${batch.queue}:`, err)
+          message.retry()
+        }
       }
     }
   },

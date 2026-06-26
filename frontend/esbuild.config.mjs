@@ -12,7 +12,7 @@ const ctx = await esbuild.context({
   sourcemap: true,
   define: {
     "process.env.NODE_ENV": watch ? '"development"' : '"production"',
-    "import.meta.env.API_BASE": '"http://localhost:8787"',
+    "import.meta.env.API_BASE": JSON.stringify(process.env.API_BASE ?? 'http://localhost:8787'),
   },
   loader: { ".tsx": "tsx", ".ts": "ts" },
 });

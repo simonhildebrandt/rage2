@@ -7,7 +7,7 @@ import { eq } from 'drizzle-orm'
 const COLLECTION_URL = 'https://www.abc.net.au/core-next/api/collection/core-next/api/collection/rage/playlist'
 const COLLECTION_PARAMS = 'rootMetaCollectionId=104200304&collectionId=13642802&ratio=16x9&subaggregation=false'
 const PAGE_SIZE = 16
-const MAX_PAGES = 1
+const MAX_PAGES = Infinity
 
 export async function runScrape(env: Env): Promise<void> {
   const db = getDb(env)
