@@ -145,7 +145,7 @@ vite.config.ts.timestamp-*
 # Wrangler / Cloudflare
 .wrangler/
 worker/dist/
-frontend/dist/
+frontend/public/dist/
 .d1/
 .dev.vars
 
