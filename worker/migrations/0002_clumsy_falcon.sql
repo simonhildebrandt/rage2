@@ -1,0 +1,1 @@
+ALTER TABLE `playlists` ADD `updated_at` text NOT NULL;
