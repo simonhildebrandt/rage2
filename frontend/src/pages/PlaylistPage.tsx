@@ -78,6 +78,7 @@ export default function PlaylistPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [autoplay] = useAutoplay()
+  const narrow = useNarrow()
   const [wrapperEl, setWrapperEl] = useState<HTMLDivElement | null>(null)
   const wrapperRef = useCallback((el: HTMLDivElement | null) => setWrapperEl(el), [])
 
@@ -161,10 +162,10 @@ export default function PlaylistPage() {
         </div>
 
         {/* Body: player + tracklist */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 440px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: narrow ? '1fr' : '1fr 440px' }}>
 
           {/* Player column */}
-          <div style={{ padding: 28, borderRight: '1px solid #1c1c24', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ padding: 28, borderRight: narrow ? 'none' : '1px solid #1c1c24', borderBottom: narrow ? '1px solid #1c1c24' : 'none', display: 'flex', flexDirection: 'column', gap: 18 }}>
 
             {/* Video area */}
             <div style={{ position: 'relative', aspectRatio: '16/9', borderRadius: 3, overflow: 'hidden' }}>
@@ -344,6 +345,16 @@ export default function PlaylistPage() {
       </div>
     </div>
   )
+}
+
+function useNarrow(breakpoint = 900) {
+  const [narrow, setNarrow] = useState(() => window.innerWidth < breakpoint)
+  useEffect(() => {
+    const handler = () => setNarrow(window.innerWidth < breakpoint)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [breakpoint])
+  return narrow
 }
 
 function EpisodeNavButton({ label, disabled, onClick }: {
