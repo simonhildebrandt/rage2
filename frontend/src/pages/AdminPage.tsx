@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
 import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, getIssueNeighbours, type YouTubeResult, type IssueNeighbours } from '../api/admin'
@@ -142,9 +143,9 @@ export default function AdminPage() {
         boxShadow: '0 2px 0 rgba(0,0,0,.2)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <span style={{ font: "700 17px 'Oswald',sans-serif", letterSpacing: '.32em', textTransform: 'uppercase' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit', font: "700 17px 'Oswald',sans-serif", letterSpacing: '.32em', textTransform: 'uppercase' }}>
             RAGE<span style={{ fontSize: '.6em', verticalAlign: '0.45em', letterSpacing: 0, marginLeft: '-.04em' }}>2</span>
-          </span>
+          </Link>
           <span style={{
             font: "600 11px 'IBM Plex Mono',monospace", letterSpacing: '.12em',
             color: 'oklch(0.7 0.16 350)',
