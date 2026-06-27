@@ -25,7 +25,7 @@ function parsePlaylistPage(html: string): ParsedVideo[] {
     const artist = $(elem).find('strong').text().trim()
     if (!artist) return
 
-    const emText = $(elem).find('em').text().trim()
+    const emText = $(elem).find('em').first().text().trim()
     const rest = $(elem).text().trim().replace(artist, '').replace(emText, '').trim()
 
     let title: string
