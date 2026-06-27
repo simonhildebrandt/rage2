@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
-import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, getIssueNeighbours, type YouTubeResult, type IssueNeighbours } from '../api/admin'
+import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, type YouTubeResult, type IssueNeighbours } from '../api/admin'
 
 type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
@@ -50,6 +50,8 @@ export default function AdminPage() {
   const [comboOpen, setComboOpen] = useState(false)
   const [comboQuery, setComboQuery] = useState('')
   const [scraping, setScraping] = useState(false)
+  const [scrapingAll, setScrapingAll] = useState(false)
+  const [playlistsLoaded, setPlaylistsLoaded] = useState(false)
   const [issueNeighbours, setIssueNeighbours] = useState<IssueNeighbours>({ prev: null, next: null })
   const [drawerTrack, setDrawerTrack] = useState<Video | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
@@ -58,8 +60,21 @@ export default function AdminPage() {
     getPlaylists().then(ps => {
       setPlaylists(ps)
       if (ps.length) setSelectedId(ps[0].id)
+      setPlaylistsLoaded(true)
     })
   }, [])
+
+  const handleTriggerScrape = async () => {
+    setScrapingAll(true)
+    try {
+      await triggerScrape()
+      const ps = await getPlaylists()
+      setPlaylists(ps)
+      if (ps.length) setSelectedId(ps[0].id)
+    } finally {
+      setScrapingAll(false)
+    }
+  }
 
   useEffect(() => {
     if (!selectedId) return
@@ -165,6 +180,20 @@ export default function AdminPage() {
             <div style={{ font: "600 11px 'IBM Plex Mono',monospace", letterSpacing: '.14em', color: '#7f8794', textTransform: 'uppercase', marginBottom: 7 }}>
               EDITING PLAYLIST
             </div>
+            {playlistsLoaded && playlists.length === 0 ? (
+              <button
+                onClick={handleTriggerScrape}
+                disabled={scrapingAll}
+                style={{
+                  padding: '9px 16px', borderRadius: 6,
+                  background: 'oklch(0.7 0.16 350 / .1)',
+                  border: '1px solid oklch(0.7 0.16 350 / .4)',
+                  color: scrapingAll ? '#4d5460' : 'oklch(0.82 0.14 350)',
+                  cursor: scrapingAll ? 'default' : 'pointer',
+                  font: "600 13px 'IBM Plex Sans',sans-serif",
+                }}
+              >{scrapingAll ? 'Scraping…' : 'No playlists found — trigger scrape'}</button>
+            ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <IssueNavBtn
                 title={issueNeighbours.next ? `◀  ${issueNeighbours.next.title}` : 'No newer playlists with issues'}
@@ -244,6 +273,7 @@ export default function AdminPage() {
                 >↗</a>
               )}
             </div>
+            )}
           </div>
 
           {/* Progress */}

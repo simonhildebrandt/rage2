@@ -16,6 +16,8 @@ export const searchYoutubeMatches = (q: string) =>
 export const patchVideoMatch = (id: number, youtube_id: string, thumbnail: string) =>
   api.patch(`/api/admin/videos/${id}/match`, { youtube_id, thumbnail })
 
+export const triggerScrape = () => api.post('/api/admin/scrape')
+
 export const rescrapePlaylist = (id: number) =>
   api.post(`/api/admin/playlists/${id}/scrape`)
 

@@ -86,7 +86,7 @@ export default function PlaylistPage() {
   const count = videos.length
   const nowTrack = videos[nowIndex]
 
-  const { isPlaying, togglePlay, seekTo, elapsed, duration } = useYouTubePlayer(
+  const { isPlaying, playerError, togglePlay, seekTo, elapsed, duration } = useYouTubePlayer(
     wrapperEl,
     nowTrack?.youtube_id ?? null,
     () => setNowIndex(i => Math.min(count - 1, i + 1)),
@@ -197,6 +197,22 @@ export default function PlaylistPage() {
                       [ YOUTUBE CLIP ]
                     </span>
                   </div>
+                </div>
+              )}
+
+              {/* Player error overlay */}
+              {playerError && (
+                <div style={{
+                  position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 3,
+                  background: '#08080c',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10,
+                }}>
+                  <span style={{ fontFamily: "'VT323',monospace", fontSize: 28, color: 'oklch(0.68 0.16 25)' }}>
+                    ⚠ {playerError.toUpperCase()}
+                  </span>
+                  <span style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 12, color: '#4d5460' }}>
+                    {nowTrack?.youtube_id}
+                  </span>
                 </div>
               )}
 

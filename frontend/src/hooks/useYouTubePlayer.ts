@@ -32,6 +32,7 @@ export function useYouTubePlayer(
   const isPlayingRef = useRef(false)
   const [elapsed, setElapsed] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [playerError, setPlayerError] = useState<string | null>(null)
 
   // Keep latest callback in a ref — the player's onStateChange closure never goes stale
   const onEndedRef = useRef(onEnded)
@@ -55,6 +56,10 @@ export function useYouTubePlayer(
 
     onYTReady(() => {
       if (cancelled) return
+      if (!latestVideoId.current) {
+        setPlayerError('No video found yet.')
+        return
+      }
       playerRef.current = new YT.Player(playerDiv, {
         videoId: latestVideoId.current ?? undefined,
         width: '100%',
@@ -73,7 +78,14 @@ export function useYouTubePlayer(
             setIsPlaying(playing)
             if (e.data === YT.PlayerState.ENDED) onEndedRef.current()
           },
-          onError: () => onEndedRef.current(),
+          onError: (e: { data: number }) => {
+            const msg =
+              e.data === 2   ? 'Invalid video ID' :
+              e.data === 100 ? 'Video unavailable' :
+              (e.data === 101 || e.data === 150) ? 'Video cannot be embedded' :
+              'Playback error'
+            setPlayerError(msg)
+          },
         },
       })
     })
@@ -102,10 +114,11 @@ export function useYouTubePlayer(
     }
   }, [videoId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset scrub position on track change
+  // Reset scrub position and error on track change
   useEffect(() => {
     setElapsed(0)
     setDuration(0)
+    setPlayerError(null)
   }, [videoId])
 
   // Poll for scrub position while playing
@@ -130,5 +143,5 @@ export function useYouTubePlayer(
     playerRef.current?.seekTo(seconds, true)
   }
 
-  return { playerRef, isPlaying, togglePlay, seekTo, elapsed, duration }
+  return { playerRef, isPlaying, playerError, togglePlay, seekTo, elapsed, duration }
 }
