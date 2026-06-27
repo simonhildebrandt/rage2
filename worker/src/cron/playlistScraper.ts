@@ -19,24 +19,31 @@ function parsePlaylistPage(html: string): ParsedVideo[] {
   let position = 1
 
   // Each time slot is a <ul data-component="List"> containing <li data-component="ListItem"> entries.
-  // Structure per entry: <strong>ARTIST</strong> <em>Title</em> (Label)
+  // Structure: <strong>ARTIST</strong> [<em>Title</em>] Title (Label)
+  // Title may be wrapped in <em> or plain text; label in trailing parens is optional.
   $('ul[data-component="List"] li[data-component="ListItem"]').each((_i, elem) => {
     const artist = $(elem).find('strong').text().trim()
     if (!artist) return
 
-    // Strip artist and any optional em message to isolate "Title (Label)"
     const emText = $(elem).find('em').text().trim()
-    const remainder = $(elem).text().trim()
-      .replace(artist, '')
-      .replace(emText, '')
-      .trim()
+    const rest = $(elem).text().trim().replace(artist, '').replace(emText, '').trim()
 
-    // remainder: "Title (Label)" or just "Title" if no label
-    // Greedy title group ensures the last (...) is captured as label,
-    // so titles like "iloveitiloveitiloveit (live)" are preserved intact.
-    const labelMatch = remainder.match(/^(.*)\s+\((.+)\)\s*$/)
-    const title = labelMatch ? labelMatch[1].trim() : remainder
-    const label = labelMatch ? labelMatch[2] : undefined
+    let title: string
+    let label: string | undefined
+
+    if (emText) {
+      // Title is wrapped in <em>; anything left in rest is the label in parens
+      title = emText
+      const labelMatch = rest.match(/^\((.+)\)\s*$/)
+      label = labelMatch ? labelMatch[1] : undefined
+    } else {
+      // Title and optional label are plain text after the artist.
+      // Greedy title group ensures the last (...) is captured as label,
+      // so titles like "iloveitiloveitiloveit (live)" are preserved intact.
+      const labelMatch = rest.match(/^(.*)\s+\((.+)\)\s*$/)
+      title = labelMatch ? labelMatch[1].trim() : rest
+      label = labelMatch ? labelMatch[2] : undefined
+    }
 
     if (!title) return
 

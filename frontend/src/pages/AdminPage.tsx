@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
-import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, type YouTubeResult } from '../api/admin'
+import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, getIssueNeighbours, type YouTubeResult, type IssueNeighbours } from '../api/admin'
 
 type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
@@ -46,7 +46,10 @@ export default function AdminPage() {
   const [tracks, setTracks] = useState<Video[]>([])
   const [loadingTracks, setLoadingTracks] = useState(false)
   const [filter, setFilter] = useState<FilterKey>('all')
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [comboOpen, setComboOpen] = useState(false)
+  const [comboQuery, setComboQuery] = useState('')
+  const [scraping, setScraping] = useState(false)
+  const [issueNeighbours, setIssueNeighbours] = useState<IssueNeighbours>({ prev: null, next: null })
   const [drawerTrack, setDrawerTrack] = useState<Video | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
 
@@ -66,6 +69,7 @@ export default function AdminPage() {
     getPlaylist(selectedId)
       .then(p => setTracks(p.videos))
       .finally(() => setLoadingTracks(false))
+    getIssueNeighbours(selectedId).then(setIssueNeighbours)
   }, [selectedId])
 
   const updateTrack = (videoId: number, patch: Partial<Video>) =>
@@ -91,6 +95,10 @@ export default function AdminPage() {
   const shown = filter === 'all' ? tracks : tracks.filter(t => statusOf(t) === filter)
   const selectedPlaylist = playlists.find(p => p.id === selectedId)
 
+  const filteredPlaylists = comboQuery
+    ? playlists.filter(p => `${fmtDate(p.aired_date)} ${p.title}`.toLowerCase().includes(comboQuery.toLowerCase()))
+    : playlists
+
   const allShownSelected = shown.length > 0 && shown.every(t => selectedIds.has(t.id))
   const someShownSelected = shown.some(t => selectedIds.has(t.id))
 
@@ -99,6 +107,20 @@ export default function AdminPage() {
       setSelectedIds(prev => { const n = new Set(prev); shown.forEach(t => n.delete(t.id)); return n })
     } else {
       setSelectedIds(prev => { const n = new Set(prev); shown.forEach(t => n.add(t.id)); return n })
+    }
+  }
+
+  const handleRescrape = async () => {
+    if (!selectedId) return
+    setScraping(true)
+    try {
+      await rescrapePlaylist(selectedId)
+      const [p, neighbours] = await Promise.all([getPlaylist(selectedId), getIssueNeighbours(selectedId)])
+      setTracks(p.videos)
+      setSelectedIds(new Set())
+      setIssueNeighbours(neighbours)
+    } finally {
+      setScraping(false)
     }
   }
 
@@ -142,41 +164,83 @@ export default function AdminPage() {
             <div style={{ font: "600 11px 'IBM Plex Mono',monospace", letterSpacing: '.14em', color: '#7f8794', textTransform: 'uppercase', marginBottom: 7 }}>
               EDITING PLAYLIST
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <IssueNavBtn
+                title={issueNeighbours.next ? `◀  ${issueNeighbours.next.title}` : 'No newer playlists with issues'}
+                disabled={!issueNeighbours.next}
+                onClick={() => issueNeighbours.next && setSelectedId(issueNeighbours.next.id)}
+              >◀</IssueNavBtn>
             <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setDropdownOpen(o => !o)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-                  background: '#181b21', color: '#e6e8ec',
-                  border: '1px solid #2b2f39', borderRadius: 6,
-                  padding: '9px 13px', font: "600 14px 'IBM Plex Sans'",
-                  cursor: 'pointer', minWidth: 320, textAlign: 'left',
-                }}
-              >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {selectedPlaylist ? `${fmtDate(selectedPlaylist.aired_date)}  ·  ${selectedPlaylist.title}` : 'Select playlist…'}
-                </span>
-                <span style={{ color: '#7f8794', fontSize: 11, flexShrink: 0 }}>▾</span>
-              </button>
-              {dropdownOpen && (
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', minWidth: 320 }}>
+                <input
+                  value={comboOpen ? comboQuery : (selectedPlaylist ? `${fmtDate(selectedPlaylist.aired_date)}  ·  ${selectedPlaylist.title}` : '')}
+                  onChange={e => setComboQuery(e.target.value)}
+                  onFocus={() => { setComboOpen(true); setComboQuery('') }}
+                  onBlur={() => setTimeout(() => setComboOpen(false), 150)}
+                  placeholder="Select playlist…"
+                  style={{
+                    width: '100%', padding: '9px 32px 9px 13px',
+                    background: '#181b21', color: '#e6e8ec',
+                    border: `1px solid ${comboOpen ? '#3a4150' : '#2b2f39'}`, borderRadius: 6,
+                    font: "600 14px 'IBM Plex Sans'", outline: 'none',
+                  }}
+                />
+                <span style={{ position: 'absolute', right: 11, color: '#7f8794', fontSize: 11, pointerEvents: 'none' }}>▾</span>
+              </div>
+              {comboOpen && (
                 <>
-                  <div onClick={() => setDropdownOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 39 }} />
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 39 }} />
                   <div style={{
                     position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 40,
-                    width: 380, maxHeight: 340, overflowY: 'auto',
+                    width: 420, maxHeight: 340, overflowY: 'auto',
                     background: '#14161b', border: '1px solid #2b2f39', borderRadius: 8,
                     boxShadow: '0 20px 50px rgba(0,0,0,.5)', padding: 5,
                   }}>
-                    {playlists.map(p => (
+                    {filteredPlaylists.length === 0 && (
+                      <div style={{ padding: '10px 11px', font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>No results</div>
+                    )}
+                    {filteredPlaylists.map(p => (
                       <DropdownItem
                         key={p.id}
                         label={`${fmtDate(p.aired_date)}  ·  ${p.title}`}
                         selected={p.id === selectedId}
-                        onClick={() => { setSelectedId(p.id); setDropdownOpen(false) }}
+                        onClick={() => { setSelectedId(p.id); setComboOpen(false); setComboQuery('') }}
                       />
                     ))}
                   </div>
                 </>
+              )}
+            </div>
+            <button
+              onClick={handleRescrape}
+              disabled={!selectedId || scraping}
+              title="Re-scrape this playlist"
+              style={{
+                height: 38, padding: '0 13px', borderRadius: 6, flexShrink: 0,
+                background: 'none', border: '1px solid #2b2f39',
+                color: scraping ? '#4d5460' : '#9aa0ab',
+                cursor: selectedId && !scraping ? 'pointer' : 'default',
+                fontSize: 15, fontFamily: "'IBM Plex Sans',sans-serif",
+              }}
+            >{scraping ? '…' : '↺'}</button>
+              <IssueNavBtn
+                title={issueNeighbours.prev ? `▶  ${issueNeighbours.prev.title}` : 'No older playlists with issues'}
+                disabled={!issueNeighbours.prev}
+                onClick={() => issueNeighbours.prev && setSelectedId(issueNeighbours.prev.id)}
+              >▶</IssueNavBtn>
+              {selectedPlaylist && (
+                <a
+                  href={selectedPlaylist.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open on ABC website"
+                  style={{
+                    height: 38, width: 38, borderRadius: 6, flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1px solid #2b2f39', color: '#7f8794',
+                    fontSize: 14, textDecoration: 'none',
+                  }}
+                >↗</a>
               )}
             </div>
           </div>
@@ -441,6 +505,32 @@ function AdminBtn({ children, onClick }: { children: React.ReactNode; onClick: (
         border: `1px solid ${hovered ? '#3a4150' : '#2b2f39'}`,
         borderRadius: 4, padding: '6px 11px',
         background: 'none', cursor: 'pointer',
+      }}
+    >{children}</button>
+  )
+}
+
+function IssueNavBtn({ children, title, disabled, onClick }: {
+  children: React.ReactNode
+  title: string
+  disabled: boolean
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        height: 38, width: 38, borderRadius: 6, flexShrink: 0,
+        background: 'none', border: `1px solid ${disabled ? '#2b2f39' : hovered ? 'oklch(0.74 0.15 350 / .6)' : 'oklch(0.74 0.15 350 / .3)'}`,
+        color: disabled ? '#3a4150' : hovered ? 'oklch(0.88 0.14 350)' : 'oklch(0.74 0.15 350)',
+        cursor: disabled ? 'default' : 'pointer',
+        fontSize: 12, fontFamily: "'IBM Plex Sans',sans-serif",
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
     >{children}</button>
   )

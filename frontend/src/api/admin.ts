@@ -15,3 +15,12 @@ export const searchYoutubeMatches = (q: string) =>
 
 export const patchVideoMatch = (id: number, youtube_id: string, thumbnail: string) =>
   api.patch(`/api/admin/videos/${id}/match`, { youtube_id, thumbnail })
+
+export const rescrapePlaylist = (id: number) =>
+  api.post(`/api/admin/playlists/${id}/scrape`)
+
+export interface IssueNeighbour { id: number; aired_date: string; title: string }
+export interface IssueNeighbours { prev: IssueNeighbour | null; next: IssueNeighbour | null }
+
+export const getIssueNeighbours = (id: number) =>
+  api.get<IssueNeighbours>(`/api/admin/playlists/${id}/issue-neighbours`).then(r => r.data)
