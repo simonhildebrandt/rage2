@@ -9,3 +9,14 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
+
+api.interceptors.response.use(
+  res => res,
+  err => {
+    if (err.response?.status === 401 || err.response?.status === 403) {
+      localStorage.removeItem('rage2_token')
+      window.location.href = '/login?error=auth'
+    }
+    return Promise.reject(err)
+  }
+)

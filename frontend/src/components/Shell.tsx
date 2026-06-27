@@ -1,11 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAutoplay } from '../providers/AutoplayProvider'
+import { useAuth } from '../providers/AuthProvider'
 
 export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
   const isBrowse = loc.pathname === '/'
   const isSearch = loc.pathname === '/search'
+  const { token } = useAuth()
 
   return (
     <>
@@ -61,16 +63,29 @@ export function Shell({ children }: { children: ReactNode }) {
       {children}
 
       <div style={{ textAlign: 'center', padding: '40px 0 28px' }}>
-        <a
-          href={`https://login-with.link/login/${import.meta.env.LWL_KEY}`}
-          style={{
-            fontFamily: "'VT323',monospace", fontSize: 18,
-            color: '#3a3a44', textDecoration: 'none',
-            letterSpacing: '.1em',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#8a8a95' }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
-        >ADMIN LOGIN</a>
+        {token ? (
+          <Link
+            to="/admin"
+            style={{
+              fontFamily: "'VT323',monospace", fontSize: 18,
+              color: '#3a3a44', textDecoration: 'none',
+              letterSpacing: '.1em',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8a8a95' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
+          >ADMIN</Link>
+        ) : (
+          <a
+            href={`https://login-with.link/login/${import.meta.env.LWL_KEY}`}
+            style={{
+              fontFamily: "'VT323',monospace", fontSize: 18,
+              color: '#3a3a44', textDecoration: 'none',
+              letterSpacing: '.1em',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#8a8a95' }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
+          >ADMIN LOGIN</a>
+        )}
       </div>
     </>
   )
