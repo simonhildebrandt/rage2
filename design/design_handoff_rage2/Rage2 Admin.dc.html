@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#0d0e11; }
+  ::placeholder { color:#4d5460; }
+  *::-webkit-scrollbar { width:10px; height:10px; }
+  *::-webkit-scrollbar-thumb { background:#2b2f39; border-radius:5px; }
+  *::-webkit-scrollbar-track { background:transparent; }
+</style>
+</helmet>
+
+<div style="min-height:100vh; background:#0d0e11; color:#e6e8ec; font-family:'IBM Plex Sans',sans-serif; font-size:14px;">
+
+  <!-- ===== TOP BAR ===== -->
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:0 22px; height:54px; background:#101217; border-bottom:1px solid #23262e; box-shadow:0 2px 0 rgba(0,0,0,.2);">
+    <div style="display:flex; align-items:center; gap:14px;">
+      <span style="font:700 17px 'Oswald',sans-serif; letter-spacing:.32em; text-transform:uppercase;">RAGE<span style="font-size:.6em; vertical-align:0.45em; letter-spacing:0; margin-left:-.04em;">2</span></span>
+      <span style="font:600 11px 'IBM Plex Mono',monospace; letter-spacing:.12em; color:oklch(0.7 0.16 350); border:1px solid oklch(0.7 0.16 350 / .4); border-radius:3px; padding:3px 8px;">ADMIN</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <span style="display:flex; align-items:center; gap:7px; font:500 12px 'IBM Plex Mono',monospace; color:#7f8794;">
+        <span style="width:7px; height:7px; border-radius:50%; background:oklch(0.72 0.13 155); box-shadow:0 0 6px oklch(0.72 0.13 155 /.6);"></span>All changes saved
+      </span>
+      <div style="width:1px; height:24px; background:#23262e;"></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:30px; height:30px; border-radius:50%; background:oklch(0.7 0.16 350 / .18); border:1px solid oklch(0.7 0.16 350 / .45); display:flex; align-items:center; justify-content:center; font:600 12px 'IBM Plex Mono'; color:oklch(0.8 0.14 350);">PG</div>
+        <div style="line-height:1.15;">
+          <div style="font-weight:600; font-size:13px;">P. Galbraith</div>
+          <div style="font-size:11px; color:#7f8794;">Editor</div>
+        </div>
+        <span style="font-size:12px; color:#7f8794; border:1px solid #2b2f39; border-radius:4px; padding:6px 11px; cursor:pointer; margin-left:4px;" style-hover="border-color:#3a4150; color:#cdd2da;">Sign out</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOOLBAR ===== -->
+  <div style="padding:18px 22px 0;">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+      <div>
+        <div style="font:600 11px 'IBM Plex Mono',monospace; letter-spacing:.14em; color:#7f8794; text-transform:uppercase; margin-bottom:7px;">EDITING PLAYLIST</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="position:relative;">
+            <span onClick="{{ toggleEpMenu }}" style="display:inline-flex; align-items:center; gap:12px; background:#181b21; color:#e6e8ec; border:1px solid #2b2f39; border-radius:6px; padding:9px 13px; font:600 15px 'IBM Plex Sans'; cursor:pointer; min-width:300px; justify-content:space-between;" style-hover="border-color:#3a4150;">
+              <span>{{ currentLabel }}</span>
+              <span style="color:#7f8794; font-size:11px;">&#9662;</span>
+            </span>
+            <sc-if value="{{ epMenuOpen }}" hint-placeholder-val="{{ false }}">
+              <div onClick="{{ closeEpMenu }}" style="position:fixed; inset:0; z-index:39;"></div>
+              <div style="position:absolute; top:calc(100% + 6px); left:0; z-index:40; width:340px; max-height:340px; overflow-y:auto; background:#14161b; border:1px solid #2b2f39; border-radius:8px; box-shadow:0 20px 50px rgba(0,0,0,.5); padding:5px;">
+                <sc-for list="{{ episodeOptions }}" as="o" hint-placeholder-count="14">
+                  <div onClick="{{ o.choose }}" style="{{ o.itemStyle }}">{{ o.label }}</div>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <span style="font:500 12px 'IBM Plex Mono',monospace; color:#7f8794;">{{ ep.dateShort }} &#183; {{ ep.count }} tracks</span>
+        </div>
+      </div>
+      <!-- progress -->
+      <div style="min-width:260px;">
+        <div style="display:flex; justify-content:space-between; font:500 12px 'IBM Plex Mono',monospace; color:#9aa0ab; margin-bottom:6px;">
+          <span>{{ verifiedCount }} / {{ ep.count }} verified</span>
+          <span style="color:#7f8794;">{{ unresolvedCount }} need attention</span>
+        </div>
+        <div style="height:6px; background:#1b1e25; border-radius:3px; overflow:hidden; border:1px solid #23262e;">
+          <div style="height:100%; background:oklch(0.72 0.13 155); box-shadow:0 0 8px oklch(0.72 0.13 155 /.5); width:{{ verifiedPct }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- filters -->
+    <div style="display:flex; gap:7px; margin:18px 0 0; border-bottom:1px solid #23262e;">
+      <sc-for list="{{ filters }}" as="f" hint-placeholder-count="5">
+        <span onClick="{{ f.select }}" style="{{ f.style }}">{{ f.label }} <span style="opacity:.6; font-family:'IBM Plex Mono',monospace;">{{ f.count }}</span></span>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- ===== TABLE ===== -->
+  <div style="padding:0 22px 60px;">
+    <!-- header row -->
+    <div style="display:grid; grid-template-columns:38px 54px minmax(110px,0.9fr) minmax(120px,1fr) minmax(280px,1.8fr) 132px 104px; align-items:center; padding:11px 12px; border-bottom:1px solid #23262e; font:600 10.5px 'IBM Plex Mono',monospace; letter-spacing:.1em; color:#6b727f; text-transform:uppercase; position:sticky; top:0; background:#0d0e11; z-index:10;">
+      <span>#</span><span>Time</span><span>Artist</span><span>Title</span><span>Matched YouTube video</span><span>Status</span><span style="text-align:right;">Actions</span>
+    </div>
+
+    <sc-for list="{{ rows }}" as="t" hint-placeholder-count="12">
+      <div style="{{ t.rowStyle }}">
+        <span style="font:500 13px 'IBM Plex Mono',monospace; color:#6b727f;">{{ t.n }}</span>
+        <span style="font:500 13px 'IBM Plex Mono',monospace; color:#7f8794;">{{ t.timecode }}</span>
+        <!-- inline editable artist -->
+        <span style="padding-right:10px;">
+          <input value="{{ t.artist }}" onInput="{{ t.onArtist }}" style="width:100%; box-sizing:border-box; background:transparent; border:1px solid transparent; border-radius:4px; padding:5px 7px; color:#e6e8ec; font:500 13.5px 'IBM Plex Sans'; outline:none;" style-hover="background:#1b1e25;" style-focus="background:#1b1e25; border-color:oklch(0.7 0.16 350 /.6);">
+        </span>
+        <!-- inline editable title -->
+        <span style="padding-right:12px;">
+          <input value="{{ t.title }}" onInput="{{ t.onTitle }}" style="width:100%; box-sizing:border-box; background:transparent; border:1px solid transparent; border-radius:4px; padding:5px 7px; color:#cdd2da; font:400 13.5px 'IBM Plex Sans'; outline:none;" style-hover="background:#1b1e25;" style-focus="background:#1b1e25; border-color:oklch(0.7 0.16 350 /.6);">
+        </span>
+        <!-- matched video -->
+        <div style="display:flex; align-items:center; gap:11px; min-width:0; padding-right:14px;">
+          <div style="position:relative; width:60px; height:34px; border-radius:3px; flex:none; overflow:hidden; background:linear-gradient(135deg,#1b1f27,#2b313d); display:flex; align-items:center; justify-content:center;">
+            <span style="color:rgba(255,255,255,.35); font-size:12px;">&#9654;</span>
+          </div>
+          <div style="min-width:0; flex:1;">
+            <div style="font-size:13px; color:#dfe3e9; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ t.videoTitle }}</div>
+            <div style="font:400 11px 'IBM Plex Mono',monospace; color:#6b727f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ t.channel }} &#183; {{ t.videoId }}</div>
+          </div>
+          <div style="flex:none; width:46px; text-align:right;">
+            <div style="font:600 12px 'IBM Plex Mono',monospace; color:{{ t.confColor }};">{{ t.confText }}</div>
+            <div style="height:3px; background:#23262e; border-radius:2px; overflow:hidden; margin-top:3px;"><div style="{{ t.confBarStyle }}"></div></div>
+          </div>
+        </div>
+        <!-- status -->
+        <span><span style="{{ t.chipStyle }}"><span style="width:6px; height:6px; border-radius:50%; background:{{ t.statusColor }};"></span>{{ t.statusLabel }}</span></span>
+        <!-- actions -->
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px;">
+          <span onClick="{{ t.verify }}" title="Verify" style="{{ t.verifyStyle }}">&#10003;</span>
+          <span onClick="{{ t.reject }}" title="Reject" style="{{ t.rejectStyle }}">&#10005;</span>
+          <span onClick="{{ t.openDrawer }}" title="Fix match" style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:1px solid #2b2f39; border-radius:5px; color:#9aa0ab; cursor:pointer; font-size:14px;" style-hover="border-color:oklch(0.7 0.16 350 /.6); color:oklch(0.8 0.14 350);">&#9881;</span>
+        </div>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center; padding:54px 0; color:#6b727f; font:500 13px 'IBM Plex Mono',monospace;">No tracks in this filter.</div>
+    </sc-if>
+  </div>
+
+  <!-- ===== DETAIL DRAWER ===== -->
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDrawer }}" style="position:fixed; inset:0; background:rgba(5,6,8,.55); z-index:75; backdrop-filter:blur(1px);"></div>
+    <div style="position:fixed; top:0; right:0; bottom:0; width:440px; background:#101217; border-left:1px solid #2b2f39; z-index:80; box-shadow:-20px 0 50px rgba(0,0,0,.5); display:flex; flex-direction:column;">
+      <!-- drawer header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #23262e;">
+        <div>
+          <div style="font:600 10.5px 'IBM Plex Mono',monospace; letter-spacing:.14em; color:#7f8794; text-transform:uppercase;">TRACK {{ dv.n }} &#183; {{ dv.timecode }}</div>
+          <div style="font-weight:600; font-size:15px; margin-top:3px;">Fix video match</div>
+        </div>
+        <span onClick="{{ closeDrawer }}" style="width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid #2b2f39; border-radius:6px; color:#9aa0ab; cursor:pointer; font-size:16px;" style-hover="border-color:#3a4150; color:#fff;">&#10005;</span>
+      </div>
+
+      <div style="flex:1; overflow-y:auto; padding:20px;">
+        <!-- current match preview -->
+        <div style="position:relative; aspect-ratio:16/9; border-radius:6px; overflow:hidden; background:linear-gradient(135deg,#1b1f27,#2b313d); display:flex; align-items:center; justify-content:center; border:1px solid #23262e;">
+          <span style="color:rgba(255,255,255,.4); font-size:30px;">&#9654;</span>
+          <span style="position:absolute; left:10px; bottom:9px; font:500 11px 'IBM Plex Mono'; color:rgba(255,255,255,.55); background:rgba(0,0,0,.5); padding:2px 6px; border-radius:3px;">{{ dv.match.videoId }}</span>
+          <span style="position:absolute; right:10px; top:9px; font:600 11px 'IBM Plex Mono'; padding:3px 8px; border-radius:3px; color:{{ dv.confColor }}; background:rgba(0,0,0,.5);">{{ dv.confText }} match</span>
+        </div>
+        <div style="margin-top:10px; font-size:13.5px; color:#dfe3e9;">{{ dv.match.videoTitle }}</div>
+        <div style="font:400 11.5px 'IBM Plex Mono',monospace; color:#6b727f; margin-top:2px;">{{ dv.match.channel }}</div>
+
+        <!-- quick match actions -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px;">
+          <span onClick="{{ openRematch }}" style="display:flex; align-items:center; justify-content:center; gap:7px; padding:10px; border:1px solid #2b2f39; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; color:#cdd2da;" style-hover="border-color:oklch(0.7 0.16 350 /.6); color:#fff;">&#8635; Re-match</span>
+          <span onClick="{{ flagNoVideo }}" style="display:flex; align-items:center; justify-content:center; gap:7px; padding:10px; border:1px solid #2b2f39; border-radius:6px; cursor:pointer; font-weight:600; font-size:13px; color:#cdd2da;" style-hover="border-color:oklch(0.68 0.16 25 /.6); color:oklch(0.74 0.16 25);">&#8856; No video available</span>
+        </div>
+
+        <!-- paste url -->
+        <div style="margin-top:16px;">
+          <div style="font:600 10.5px 'IBM Plex Mono',monospace; letter-spacing:.12em; color:#7f8794; text-transform:uppercase; margin-bottom:7px;">OVERRIDE WITH YOUTUBE URL</div>
+          <div style="display:flex; gap:8px;">
+            <input value="{{ urlInput }}" onInput="{{ onUrl }}" placeholder="https://youtube.com/watch?v=&#8230;" style="flex:1; min-width:0; background:#181b21; border:1px solid #2b2f39; border-radius:6px; padding:9px 11px; color:#e6e8ec; font:400 12.5px 'IBM Plex Mono'; outline:none;" style-focus="border-color:oklch(0.7 0.16 350 /.6);">
+            <span onClick="{{ applyUrl }}" style="display:flex; align-items:center; padding:0 15px; border-radius:6px; background:oklch(0.7 0.16 350 /.16); border:1px solid oklch(0.7 0.16 350 /.5); color:oklch(0.82 0.14 350); font-weight:600; font-size:13px; cursor:pointer;" style-hover="background:oklch(0.7 0.16 350 /.26);">Apply</span>
+          </div>
+        </div>
+
+        <div style="height:1px; background:#23262e; margin:20px 0;"></div>
+
+        <!-- metadata fields -->
+        <div style="font:600 10.5px 'IBM Plex Mono',monospace; letter-spacing:.12em; color:#7f8794; text-transform:uppercase; margin-bottom:10px;">TRACK METADATA</div>
+        <label style="display:block; font-size:12px; color:#9aa0ab; margin-bottom:5px;">Artist</label>
+        <input value="{{ dv.artist }}" onInput="{{ onDArtist }}" style="width:100%; box-sizing:border-box; background:#181b21; border:1px solid #2b2f39; border-radius:6px; padding:9px 11px; color:#e6e8ec; font:500 14px 'IBM Plex Sans'; outline:none; margin-bottom:13px;" style-focus="border-color:oklch(0.7 0.16 350 /.6);">
+        <label style="display:block; font-size:12px; color:#9aa0ab; margin-bottom:5px;">Title</label>
+        <input value="{{ dv.title }}" onInput="{{ onDTitle }}" style="width:100%; box-sizing:border-box; background:#181b21; border:1px solid #2b2f39; border-radius:6px; padding:9px 11px; color:#e6e8ec; font:500 14px 'IBM Plex Sans'; outline:none; margin-bottom:16px;" style-focus="border-color:oklch(0.7 0.16 350 /.6);">
+
+        <label style="display:block; font-size:12px; color:#9aa0ab; margin-bottom:7px;">Match status</label>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <sc-for list="{{ dv.statusOptions }}" as="s" hint-placeholder-count="4">
+            <span onClick="{{ s.select }}" style="{{ s.style }}">{{ s.label }}</span>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- drawer footer -->
+      <div style="display:flex; gap:10px; padding:14px 20px; border-top:1px solid #23262e;">
+        <span onClick="{{ closeDrawer }}" style="flex:1; text-align:center; padding:11px; border:1px solid #2b2f39; border-radius:6px; cursor:pointer; font-weight:600; color:#9aa0ab;" style-hover="border-color:#3a4150; color:#cdd2da;">Cancel</span>
+        <span onClick="{{ saveDrawer }}" style="flex:1; text-align:center; padding:11px; border-radius:6px; cursor:pointer; font-weight:700; color:#0d0e11; background:oklch(0.74 0.15 350); box-shadow:0 0 14px oklch(0.7 0.16 350 /.4);" style-hover="background:oklch(0.78 0.15 350);">Save changes</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== RE-MATCH MODAL ===== -->
+  <sc-if value="{{ rematchOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeRematch }}" style="position:fixed; inset:0; background:rgba(5,6,8,.66); z-index:90; backdrop-filter:blur(2px);"></div>
+    <div style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:560px; max-width:92vw; max-height:80vh; display:flex; flex-direction:column; background:#101217; border:1px solid #2b2f39; border-radius:10px; z-index:95; box-shadow:0 30px 80px rgba(0,0,0,.6); overflow:hidden;">
+      <div style="padding:18px 20px; border-bottom:1px solid #23262e;">
+        <div style="font:600 10.5px 'IBM Plex Mono',monospace; letter-spacing:.14em; color:#7f8794; text-transform:uppercase;">CANDIDATE VIDEOS</div>
+        <div style="font-weight:600; font-size:16px; margin-top:4px;">{{ dv.artist }} &#8212; {{ dv.title }}</div>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:12px;">
+        <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="5">
+          <div onClick="{{ c.choose }}" style="display:flex; align-items:center; gap:13px; padding:11px 12px; border:1px solid #23262e; border-radius:8px; margin-bottom:8px; cursor:pointer;" style-hover="border-color:oklch(0.7 0.16 350 /.6); background:#181b21;">
+            <div style="position:relative; width:86px; height:48px; flex:none; border-radius:4px; overflow:hidden; background:linear-gradient(135deg,#1b1f27,#2b313d); display:flex; align-items:center; justify-content:center;">
+              <span style="color:rgba(255,255,255,.35); font-size:15px;">&#9654;</span>
+            </div>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13.5px; color:#e6e8ec; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ c.videoTitle }}</div>
+              <div style="font:400 11.5px 'IBM Plex Mono',monospace; color:#6b727f; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ c.channel }} &#183; {{ c.videoId }}</div>
+            </div>
+            <div style="flex:none; text-align:right;">
+              <div style="font:600 13px 'IBM Plex Mono',monospace; color:{{ c.confColor }};">{{ c.confText }}</div>
+              <div style="font-size:11px; color:#6b727f;">match</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:13px 20px; border-top:1px solid #23262e; display:flex; justify-content:flex-end;">
+        <span onClick="{{ closeRematch }}" style="padding:10px 18px; border:1px solid #2b2f39; border-radius:6px; cursor:pointer; font-weight:600; color:#9aa0ab;" style-hover="border-color:#3a4150; color:#cdd2da;">Cancel</span>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { episodeId: 1, filter: "all", store: {}, selectedIndex: null, draft: null, urlInput: "", rematchOpen: false, epMenuOpen: false };
+
+  componentDidMount() { this.ensure(this.state.episodeId); }
+
+  // ---------- dataset ----------
+  pool() { return [
+    ["Powderfinger","My Happiness","4:18"],["Powderfinger","These Days","4:52"],["Coldplay","Yellow","4:32"],
+    ["Coldplay","Trouble","4:30"],["Killing Heidi","Mascara","3:55"],["Killing Heidi","Weir","3:46"],
+    ["Eminem","The Real Slim Shady","4:44"],["Eminem","Without Me","4:50"],["Red Hot Chili Peppers","Californication","5:21"],
+    ["Red Hot Chili Peppers","By The Way","3:37"],["Madison Avenue","Don't Call Me Baby","3:30"],["Destiny's Child","Say My Name","4:31"],
+    ["Blink-182","All The Small Things","2:48"],["Taxiride","Get Set","3:39"],["Moby","Natural Blues","4:12"],
+    ["Muse","Sunburn","3:54"],["Foo Fighters","Learn To Fly","3:55"],["Foo Fighters","All My Life","4:23"],
+    ["The Cranberries","Just My Imagination","3:42"],["Vanessa Amorosi","Absolutely Everybody","3:48"],["Madonna","Music","3:44"],
+    ["Madonna","Don't Tell Me","4:40"],["The Living End","Prisoner Of Society","3:58"],["Silverchair","Anthem For The Year 2000","5:01"],
+    ["Silverchair","The Greatest View","4:08"],["Spiderbait","Calypso","3:05"],["Regurgitator","! (The Song Formerly...)","3:35"],
+    ["Kylie Minogue","Spinning Around","3:27"],["Kylie Minogue","Can't Get You Out Of My Head","3:50"],["Robbie Williams","Rock DJ","4:16"],
+    ["Eminem","Stan","6:44"],["Outkast","Ms. Jackson","4:30"],["The White Stripes","Fell In Love With A Girl","1:50"],
+    ["Nelly Furtado","I'm Like A Bird","4:03"],["Gorillaz","Clint Eastwood","5:41"],["System Of A Down","Chop Suey!","3:30"],
+    ["Jet","Are You Gonna Be My Girl","3:34"],["The Strokes","Last Nite","3:17"],["Pink","Get The Party Started","3:12"],["Linkin Park","In The End","3:36"],
+  ]; }
+  rawEpisodes() { return [
+    [1,"SAT",18,"MAR",2000,"All-genre night",[0,4,2,19,10,8,11,12,13,14,6,15,16,18]],
+    [2,"SAT",11,"MAR",2000,"All-request",[20,27,29,31,30,2,8,12,6,11,10,16]],
+    [3,"SAT",4,"MAR",2000,"Guest: Spiderbait",[25,22,23,26,5,1,4,0,8,16,15,13]],
+    [4,"SAT",25,"MAR",2000,"Top 50 countdown",[6,30,11,31,29,20,27,19,2,8,12,16,4,0]],
+    [5,"SAT",14,"FEB",2000,"Valentine's edition",[19,10,13,27,12,14,2,4,16,6,11]],
+    [6,"SAT",17,"JUN",2000,"Winter all-nighter",[0,2,8,16,6,30,31,11,12,4,14,15]],
+    [7,"FRI",31,"DEC",1999,"NYE special",[22,23,25,26,5,1,18,4,0,16,8]],
+    [8,"SAT",9,"SEP",2000,"Spring playlist",[27,29,20,31,30,8,2,12,6,11,16,19]],
+    [9,"SAT",13,"JAN",2001,"New season opener",[28,34,37,38,39,35,3,33,9]],
+    [10,"SAT",21,"JUL",2001,"Guest: Gorillaz",[34,3,9,28,35,37,38,39,33,29]],
+    [11,"SAT",10,"NOV",2001,"Top 100 of the year",[28,35,39,34,37,38,33,3,9]],
+    [12,"SAT",16,"MAR",2002,"All-genre night",[7,9,17,24,32,28,35,34]],
+    [13,"SAT",24,"AUG",2002,"Guest: Foo Fighters",[17,9,24,7,32,16,8,3]],
+    [14,"SAT",12,"APR",2003,"Rock revival",[36,32,17,24,9,7,34,37]],
+  ]; }
+  MON() { return {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11}; }
+  secs(s){ const [m,x]=s.split(":").map(Number); return m*60+x; }
+  fmt(t){ const m=Math.floor(t/60),s=t%60; return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"); }
+  hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+  idFrom(h){ const AB="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"; let s="",x=h; for(let i=0;i<11;i++){ s+=AB[x%64]; x=Math.floor(x/64)+(i+1)*131; } return s; }
+  slug(a){ return a.toLowerCase().replace(/[^a-z0-9]+/g,""); }
+
+  makeMatch(epId,i,artist,title){
+    const h=this.hash(epId+":"+i+":"+artist+":"+title), v=h%7, sg=this.slug(artist);
+    let videoTitle,channel,conf;
+    if(v===0){ videoTitle=title+" (Karaoke Version)"; channel="Sing King Karaoke"; conf=34+h%15; }
+    else if(v===1){ videoTitle="[REACTION] "+artist+" - "+title; channel="React Nation"; conf=27+h%16; }
+    else if(v===2){ videoTitle=artist+" - "+title+" (Live at the Big Day Out)"; channel=sg+"live"; conf=60+h%18; }
+    else if(v===3){ videoTitle=title+" - "+artist+" (Lyric Video)"; channel=sg+"VEVO"; conf=70+h%16; }
+    else { videoTitle=artist+" - "+title+" (Official Video)"; channel=sg+"VEVO"; conf=83+h%16; }
+    let status = conf>=85?"verified":conf>=60?"review":"rejected";
+    if(h%17===0) status="novideo";
+    return { videoId:this.idFrom(h), videoTitle, channel, confidence:Math.min(99,conf), status, manual:false };
+  }
+  candidatesFor(epId,i,artist,title){
+    const sg=this.slug(artist);
+    const base=[
+      [artist+" - "+title+" (Official Video)", sg+"VEVO", 95],
+      [artist+" - "+title+" (Official Audio)", sg, 89],
+      [title+" (Remastered)", sg+"VEVO", 80],
+      [artist+" - "+title+" (Live)", sg+"live", 66],
+      [title+" (Lyric Video)", "LyricsHub", 58],
+    ];
+    return base.map((b,k)=>({ videoTitle:b[0], channel:b[1], confidence:b[2], videoId:this.idFrom(this.hash(epId+"c"+i+k+artist)) }));
+  }
+
+  episodesMeta(){
+    const pool=this.pool();
+    const eps=this.rawEpisodes().map(r=>{
+      const [id,dow,dd,mon,yyyy,tag,idxs]=r;
+      const ts=new Date(yyyy,this.MON()[mon],dd).getTime();
+      return { id,dow,dd:String(dd).padStart(2,"0"),mon,yyyy,tag,idxs,ts,
+        count:String(idxs.length),
+        dateShort:dow+" "+String(dd).padStart(2,"0")+" "+mon+" "+yyyy };
+    });
+    eps.sort((a,b)=>b.ts-a.ts);
+    return eps;
+  }
+  buildTracks(id){
+    const pool=this.pool();
+    const ep=this.rawEpisodes().find(r=>r[0]===id);
+    let acc=0;
+    return ep[6].map((ix,i)=>{
+      const [artist,title,dur]=pool[ix];
+      const tc=this.fmt(acc); acc+=this.secs(dur);
+      return { n:String(i+1).padStart(2,"0"), timecode:tc, artist, title, dur, match:this.makeMatch(id,i,artist,title) };
+    });
+  }
+  ensure(id){ if(!this.state.store[id]){ this.setState(s=>({ store:{...s.store,[id]:this.buildTracks(id)} })); } }
+  current(){ return this.state.store[this.state.episodeId] || this.buildTracks(this.state.episodeId); }
+
+  // ---------- meta ----------
+  STATUS(){ return {
+    verified:{label:"Verified",color:"oklch(0.72 0.13 155)",bg:"oklch(0.72 0.13 155 / .14)"},
+    review:{label:"Needs review",color:"oklch(0.8 0.13 75)",bg:"oklch(0.8 0.13 75 / .14)"},
+    rejected:{label:"Rejected",color:"oklch(0.68 0.16 25)",bg:"oklch(0.68 0.16 25 / .14)"},
+    novideo:{label:"No video",color:"#8a93a3",bg:"rgba(138,147,163,.14)"},
+  }; }
+  confColorOf(c){ return c>=85?"oklch(0.72 0.13 155)":c>=60?"oklch(0.8 0.13 75)":"oklch(0.68 0.16 25)"; }
+
+  // ---------- mutations ----------
+  patch(i,fn){ this.setState(s=>{ const arr=(s.store[s.episodeId]||this.buildTracks(s.episodeId)).map((t,k)=> k===i?fn({...t,match:{...t.match}}):t ); return { store:{...s.store,[s.episodeId]:arr} }; }); }
+  editField(i,field,val){ this.patch(i,t=>{ t[field]=val; return t; }); }
+  setStatus(i,st){ this.patch(i,t=>{ t.match.status=st; return t; }); }
+
+  selectEpisode(id){ this.ensure(id); this.setState({ episodeId:id, filter:"all", selectedIndex:null, draft:null, epMenuOpen:false }); }
+  openDrawer(i){ const t=this.current()[i]; this.setState({ selectedIndex:i, draft:JSON.parse(JSON.stringify(t)), urlInput:"" }); }
+  closeDrawer(){ this.setState({ selectedIndex:null, draft:null, rematchOpen:false }); }
+  saveDrawer(){ const i=this.state.selectedIndex, d=this.state.draft; this.patch(i,()=>JSON.parse(JSON.stringify(d))); this.closeDrawer(); }
+  setDraft(fn){ this.setState(s=>{ const d=JSON.parse(JSON.stringify(s.draft)); fn(d); return { draft:d }; }); }
+  applyUrl(){ const u=this.state.urlInput.trim(); if(!u) return; const m=u.match(/[?&]v=([\w-]{6,})|youtu\.be\/([\w-]{6,})|\/([\w-]{11})$/); const id=m?(m[1]||m[2]||m[3]):u.slice(0,11); this.setDraft(d=>{ d.match.videoId=id; d.match.videoTitle="Manual match \u2014 "+d.artist+" - "+d.title; d.match.channel="(manual override)"; d.match.confidence=100; d.match.manual=true; d.match.status="verified"; }); this.setState({urlInput:""}); }
+  flagNoVideo(){ this.setDraft(d=>{ d.match.status="novideo"; }); }
+  openRematch(){ this.setState({rematchOpen:true}); }
+  closeRematch(){ this.setState({rematchOpen:false}); }
+  chooseCandidate(c){ this.setDraft(d=>{ d.match.videoId=c.videoId; d.match.videoTitle=c.videoTitle; d.match.channel=c.channel; d.match.confidence=c.confidence; d.match.manual=false; d.match.status= c.confidence>=85?"verified":"review"; }); this.setState({rematchOpen:false}); }
+
+  renderVals(){
+    const S=this.STATUS();
+    const eps=this.episodesMeta();
+    const ep=eps.find(e=>e.id===this.state.episodeId)||eps[0];
+    const tracks=this.current();
+
+    const itemBase="padding:9px 11px; border-radius:5px; font-size:13.5px; font-weight:500; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
+    const episodeOptions=eps.map(e=>({ id:e.id, label:e.dateShort+"  \u00b7  "+e.tag, selected:e.id===this.state.episodeId,
+      choose:()=>this.selectEpisode(e.id),
+      itemStyle: e.id===this.state.episodeId ? itemBase+"color:oklch(0.82 0.14 350); background:oklch(0.7 0.16 350 /.14);" : itemBase+"color:#cdd2da;" }));
+    const currentLabel=ep.dateShort+"  \u00b7  "+ep.tag;
+
+    // counts
+    const counts={all:tracks.length,verified:0,review:0,rejected:0,novideo:0};
+    tracks.forEach(t=>counts[t.match.status]++);
+    const verifiedCount=counts.verified;
+    const unresolvedCount=counts.review+counts.rejected+counts.novideo;
+    const verifiedPct=Math.round((verifiedCount/tracks.length)*100);
+
+    // filters
+    const fdef=[["all","All"],["review","Needs review"],["rejected","Rejected"],["novideo","No video"],["verified","Verified"]];
+    const fbase="display:inline-flex; align-items:center; gap:7px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;";
+    const filters=fdef.map(([k,l])=>({ label:l, count:counts[k], select:()=>this.setState({filter:k}),
+      style: k===this.state.filter
+        ? fbase+"color:#fff; border-bottom-color:oklch(0.74 0.15 350);"
+        : fbase+"color:#7f8794;" }));
+
+    // rows
+    const actBase="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:5px; cursor:pointer; font-size:13px; border:1px solid #2b2f39; color:#7f8794;";
+    const rowBase="display:grid; grid-template-columns:38px 54px minmax(110px,0.9fr) minmax(120px,1fr) minmax(280px,1.8fr) 132px 104px; align-items:center; padding:7px 12px; border-bottom:1px solid #1a1d23;";
+    const shown=tracks.map((t,i)=>({t,i})).filter(({t})=> this.state.filter==="all"|| t.match.status===this.state.filter );
+    const rows=shown.map(({t,i})=>{
+      const m=t.match, st=S[m.status], cc=this.confColorOf(m.confidence);
+      const isV=m.status==="verified", isR=m.status==="rejected";
+      return {
+        n:t.n, timecode:t.timecode, artist:t.artist, title:t.title,
+        videoTitle:m.videoTitle, channel:m.channel, videoId:m.videoId,
+        confText:m.confidence+"%", confColor:cc, statusColor:st.color,
+        confBarStyle:"width:"+m.confidence+"%; height:100%; background:"+cc+"; border-radius:2px;",
+        statusLabel:st.label,
+        chipStyle:"display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border-radius:4px; font:600 11px 'IBM Plex Sans'; letter-spacing:.02em; color:"+st.color+"; background:"+st.bg+"; border:1px solid "+st.color+"30;",
+        rowStyle:rowBase+(this.state.selectedIndex===i?"background:#15171d;":""),
+        verifyStyle:actBase+(isV?"border-color:oklch(0.72 0.13 155 /.6); color:oklch(0.74 0.13 155); background:oklch(0.72 0.13 155 /.12);":""),
+        rejectStyle:actBase+(isR?"border-color:oklch(0.68 0.16 25 /.6); color:oklch(0.72 0.16 25); background:oklch(0.68 0.16 25 /.12);":""),
+        onArtist:(e)=>this.editField(i,"artist",e.target.value),
+        onTitle:(e)=>this.editField(i,"title",e.target.value),
+        verify:()=>this.setStatus(i,"verified"),
+        reject:()=>this.setStatus(i,"rejected"),
+        openDrawer:()=>this.openDrawer(i),
+      };
+    });
+
+    // drawer view
+    const d=this.state.draft;
+    let dv=null, candidates=[];
+    if(d){
+      const cc=this.confColorOf(d.match.confidence);
+      const sopts=[["verified","Verified"],["review","Needs review"],["rejected","Rejected"],["novideo","No video"]];
+      const sb="padding:8px 13px; border-radius:6px; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid #2b2f39; color:#9aa0ab;";
+      dv={
+        n:d.n, timecode:d.timecode, artist:d.artist, title:d.title, confText:d.match.confidence+"%", confColor:cc,
+        match:{ videoId:d.match.videoId, videoTitle:d.match.videoTitle, channel:d.match.channel },
+        statusOptions:sopts.map(([k,l])=>({ label:l, select:()=>this.setDraft(x=>{x.match.status=k;}),
+          style: d.match.status===k ? sb+"color:"+S[k].color+"; background:"+S[k].bg+"; border-color:"+S[k].color+"66;" : sb })),
+      };
+      const sel=this.state.selectedIndex;
+      candidates=this.candidatesFor(this.state.episodeId,sel,d.artist,d.title).map(c=>({
+        ...c, confText:c.confidence+"%", confColor:this.confColorOf(c.confidence), choose:()=>this.chooseCandidate(c),
+      }));
+    }
+
+    return {
+      episodeOptions, currentLabel,
+      epMenuOpen:this.state.epMenuOpen, toggleEpMenu:()=>this.setState(s=>({epMenuOpen:!s.epMenuOpen})), closeEpMenu:()=>this.setState({epMenuOpen:false}),
+      ep, verifiedCount, unresolvedCount, verifiedPct,
+      filters, rows, noRows:rows.length===0,
+      drawerOpen:!!d, dv, closeDrawer:()=>this.closeDrawer(), saveDrawer:()=>this.saveDrawer(),
+      onDArtist:(e)=>this.setDraft(x=>{x.artist=e.target.value;}),
+      onDTitle:(e)=>this.setDraft(x=>{x.title=e.target.value;}),
+      urlInput:this.state.urlInput, onUrl:(e)=>this.setState({urlInput:e.target.value}), applyUrl:()=>this.applyUrl(),
+      flagNoVideo:()=>this.flagNoVideo(), openRematch:()=>this.openRematch(),
+      rematchOpen:this.state.rematchOpen, closeRematch:()=>this.closeRematch(), candidates,
+    };
+  }
+}
+</script>
+</body>
+</html>

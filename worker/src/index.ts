@@ -4,6 +4,8 @@ import type { Env, PlaylistQueueMessage, YoutubeQueueMessage } from './types'
 import { playlistRoutes } from './routes/playlists'
 import { videoRoutes } from './routes/videos'
 import { adminRoutes } from './routes/admin'
+import { statsRoutes } from './routes/stats'
+import { searchRoutes } from './routes/search'
 import { runScrape } from './cron/scraper'
 import { scrapePlaylist } from './cron/playlistScraper'
 import { searchYoutube, QuotaError } from './cron/youtubeScraper'
@@ -16,6 +18,8 @@ app.use('*', cors({ origin: '*' }))
 app.route('/api/playlists', playlistRoutes)
 app.route('/api/videos', videoRoutes)
 app.route('/api/admin', adminRoutes)
+app.route('/api/stats', statsRoutes)
+app.route('/api/search', searchRoutes)
 
 export default {
   fetch: app.fetch,

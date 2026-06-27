@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background:#08080c; }
+  @keyframes recblink { 0%,49%{opacity:1} 50%,100%{opacity:.12} }
+  @keyframes crtflick { 0%,100%{opacity:.05} 50%{opacity:.10} }
+  @keyframes curblink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  ::placeholder { color:#4f4f59; }
+</style>
+</helmet>
+
+<div style="position:relative; min-height:100vh; background:#08080c; color:#e9e9ef; font-family:'IBM Plex Mono',monospace; overflow-x:hidden;">
+  <!-- overlays -->
+  <div style="position:fixed; inset:0; pointer-events:none; z-index:60; background:repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0px, rgba(255,255,255,.04) 1px, transparent 1px, transparent 3px);"></div>
+  <div style="position:fixed; inset:0; pointer-events:none; z-index:61; background:radial-gradient(130% 130% at 50% 30%, transparent 58%, rgba(0,0,0,.6) 100%);"></div>
+
+  <!-- ===== TOP BAR ===== -->
+  <div style="position:sticky; top:0; z-index:50; display:flex; align-items:center; justify-content:space-between; padding:16px 34px; background:rgba(8,8,12,.92); border-bottom:1px solid #1c1c24; backdrop-filter:blur(4px);">
+    <div onClick="{{ goBrowse }}" style="display:flex; align-items:center; gap:16px; cursor:pointer;">
+      <span style="font:400 30px 'VT323',monospace; color:oklch(0.78 0.22 350); text-shadow:0 0 14px oklch(0.66 0.24 350 / .8);">&#9654;</span>
+      <span style="font:700 24px 'Oswald',sans-serif; letter-spacing:.4em; text-transform:uppercase;">RAGE<span style="font-size:.6em; vertical-align:0.45em; letter-spacing:0; margin-left:-.04em;">2</span></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:34px;">
+      <span onClick="{{ goBrowse }}" style="{{ browseNavStyle }}">BROWSE</span>
+      <span onClick="{{ goSearch }}" style="{{ searchNavStyle }}">SEARCH</span>
+      <div style="display:flex; align-items:center; gap:11px; font:400 22px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.05em;">
+        <span style="width:10px; height:10px; border-radius:50%; background:oklch(0.66 0.24 25); box-shadow:0 0 10px oklch(0.66 0.24 25); animation:recblink 1.1s steps(1) infinite;"></span>
+        <span>REC &#183; ARCHIVE</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BROWSE ===================== -->
+  <sc-if value="{{ isBrowse }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:1180px; margin:0 auto; padding:46px 34px 80px;">
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div style="font:400 24px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.2em;">&#187; PLAYLIST ARCHIVE</div>
+        <h1 style="margin:6px 0 0; font:700 56px 'Oswald',sans-serif; text-transform:uppercase; letter-spacing:-.01em; line-height:.95;">Travel back through<br>rage's history</h1>
+      </div>
+      <div style="text-align:right; font:400 24px 'VT323',monospace; color:#5a5a64; line-height:1.3;">1,694 EPISODES<br>201,316 CLIPS &#183; 1 YR 173 DAYS</div>
+    </div>
+
+    <!-- year filter -->
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:34px 0 26px; border-top:1px solid #1c1c24; border-bottom:1px solid #1c1c24; padding:16px 0;">
+      <span style="font:400 22px 'VT323',monospace; color:#5a5a64; margin-right:8px; letter-spacing:.1em;">SEASON</span>
+      <sc-for list="{{ years }}" as="y" hint-placeholder-count="5">
+        <span onClick="{{ y.select }}" style="{{ y.style }}">{{ y.label }}</span>
+      </sc-for>
+    </div>
+
+    <!-- episode list -->
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <sc-for list="{{ episodes }}" as="e" hint-placeholder-count="5">
+        <div onClick="{{ e.open }}" style="display:grid; grid-template-columns:130px 1fr auto; align-items:center; gap:24px; padding:18px 22px; border:1px solid #1c1c24; background:#0b0b10; cursor:pointer;" style-hover="border-color:oklch(0.5 0.16 350); background:#101018;">
+          <div style="border-right:1px solid #1c1c24; padding-right:20px;">
+            <div style="font:400 46px 'VT323',monospace; line-height:.8; color:#fff;">{{ e.dd }}</div>
+            <div style="font:400 20px 'VT323',monospace; color:oklch(0.78 0.22 350); letter-spacing:.12em; margin-top:4px;">{{ e.monYr }}</div>
+            <div style="font:400 16px 'VT323',monospace; color:#5a5a64; letter-spacing:.1em;">{{ e.dow }}</div>
+          </div>
+          <div style="min-width:0;">
+            <div style="font:600 16px 'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.04em; color:oklch(0.86 0.13 200); margin-bottom:6px;">{{ e.tag }}</div>
+            <div style="font:400 21px 'VT323',monospace; color:#b6b6c0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ e.featured }}</div>
+          </div>
+          <div style="display:flex; align-items:center; gap:22px;">
+            <div style="text-align:right; font:400 22px 'VT323',monospace; color:#5a5a64; line-height:1.2;">{{ e.count }} CLIPS<br>{{ e.runtime }}</div>
+            <span style="font:400 26px 'VT323',monospace; color:oklch(0.78 0.22 350); text-shadow:0 0 12px oklch(0.66 0.24 350 /.7); border:1px solid #2a2a34; border-radius:50%; width:46px; height:46px; display:flex; align-items:center; justify-content:center;">&#9654;</span>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ===================== SEARCH ===================== -->
+  <sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:980px; margin:0 auto; padding:46px 34px 80px;">
+    <div style="font:400 24px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.2em;">&#187; SEARCH THE ARCHIVE</div>
+    <!-- input -->
+    <div style="position:relative; margin-top:14px;">
+      <span style="position:absolute; left:18px; top:50%; transform:translateY(-50%); font:400 28px 'VT323',monospace; color:oklch(0.78 0.22 350);">&#9906;</span>
+      <input value="{{ query }}" onInput="{{ onQuery }}" placeholder="date, artist or song&#8230;" style="width:100%; box-sizing:border-box; padding:18px 18px 18px 56px; background:#0b0b10; border:1px solid #2a2a34; border-radius:3px; color:#fff; font:400 30px 'VT323',monospace; letter-spacing:.04em; outline:none;" style-focus="border-color:oklch(0.55 0.18 350);">
+    </div>
+    <!-- mode toggle -->
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+        <span onClick="{{ m.select }}" style="{{ m.style }}">{{ m.label }}</span>
+      </sc-for>
+    </div>
+
+    <!-- empty state -->
+    <sc-if value="{{ noQuery }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:40px;">
+        <div style="font:400 22px 'VT323',monospace; color:#5a5a64; letter-spacing:.12em; margin-bottom:14px;">TRY SEARCHING</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="6">
+            <span onClick="{{ s.select }}" style="font:400 22px 'VT323',monospace; color:#b6b6c0; border:1px solid #2a2a34; padding:7px 16px; cursor:pointer; letter-spacing:.04em;" style-hover="border-color:oklch(0.5 0.16 350); color:#fff;">{{ s.label }}</span>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- results -->
+    <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:30px;">
+        <div style="font:400 24px 'VT323',monospace; color:#8a8a95; letter-spacing:.08em; border-bottom:1px solid #1c1c24; padding-bottom:12px; margin-bottom:14px;">{{ resultSummary }}</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
+            <div onClick="{{ r.open }}" style="display:grid; grid-template-columns:108px 1fr auto; align-items:center; gap:22px; padding:14px 20px; border:1px solid #1c1c24; background:#0b0b10; cursor:pointer;" style-hover="border-color:oklch(0.5 0.16 350); background:#101018;">
+              <div style="border-right:1px solid #1c1c24; padding-right:16px;">
+                <div style="font:400 34px 'VT323',monospace; line-height:.8; color:#fff;">{{ r.dd }}</div>
+                <div style="font:400 17px 'VT323',monospace; color:oklch(0.78 0.22 350); letter-spacing:.1em; margin-top:3px;">{{ r.monYr }}</div>
+              </div>
+              <div style="min-width:0;">
+                <div style="font:600 17px 'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.02em; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.primary }}</div>
+                <div style="font:400 20px 'VT323',monospace; color:#8a8a95; margin-top:2px;">{{ r.secondary }}</div>
+              </div>
+              <span style="font:400 22px 'VT323',monospace; color:oklch(0.78 0.22 350); letter-spacing:.1em;">OPEN &#9654;</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+          <div style="font:400 26px 'VT323',monospace; color:#5a5a64; text-align:center; padding:50px 0; letter-spacing:.06em;">&#9617;&#9617;&#9617; NO SIGNAL &#8212; nothing matched "{{ query }}" &#9617;&#9617;&#9617;</div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <!-- ===================== EPISODE / PLAYER ===================== -->
+  <sc-if value="{{ isEpisode }}" hint-placeholder-val="{{ false }}">
+  <div style="max-width:1280px; margin:0 auto; padding:26px 34px 70px;">
+    <div onClick="{{ goBrowse }}" style="display:inline-flex; align-items:center; gap:10px; font:400 22px 'VT323',monospace; color:#8a8a95; cursor:pointer; letter-spacing:.08em; margin-bottom:18px;" style-hover="color:#fff;">&#9664; BACK TO ARCHIVE</div>
+
+    <div style="position:relative; border:1px solid #1c1c24; border-radius:4px; overflow:hidden; background:#08080c;">
+      <!-- episode header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:18px 28px; border-bottom:1px solid #1c1c24;">
+        <div style="display:flex; align-items:baseline; gap:18px;">
+          <span style="font:400 30px 'VT323',monospace; color:oklch(0.78 0.22 350); text-shadow:0 0 14px oklch(0.66 0.24 350 /.7);">&#9654; PLAY</span>
+          <span style="font:600 22px 'Oswald',sans-serif; letter-spacing:.06em; text-transform:uppercase;">{{ ce.dateLong }}</span>
+          <span style="font:400 22px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.08em;">{{ ce.tag }}</span>
+        </div>
+        <span style="font:400 24px 'VT323',monospace; color:#5a5a64;">SP &#183; {{ ce.count }} CLIPS &#183; {{ ce.runtime }}</span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 440px;">
+        <!-- player -->
+        <div style="padding:28px; display:flex; flex-direction:column; gap:18px; border-right:1px solid #1c1c24;">
+          <div style="position:relative; aspect-ratio:16/9; border-radius:3px; overflow:hidden; background:repeating-linear-gradient(135deg,#15151c 0,#15151c 16px,#0f0f15 16px,#0f0f15 32px); box-shadow:inset 0 0 60px rgba(0,0,0,.7);">
+            <div style="position:absolute; inset:0; animation:crtflick 4s ease-in-out infinite; background:radial-gradient(circle at 50% 50%, oklch(0.78 0.22 350 /.12), transparent 60%);"></div>
+            <div style="position:absolute; top:14px; left:16px; font:400 22px 'VT323',monospace; color:rgba(233,233,239,.55); letter-spacing:.08em;">CH 02 &#183; {{ nowTrack.timecode }}</div>
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font:400 20px 'VT323',monospace; color:rgba(233,233,239,.4); letter-spacing:.18em;">[ YOUTUBE CLIP ]</div>
+            <div style="position:absolute; left:24px; bottom:22px; right:24px;">
+              <div style="font:400 18px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.22em; margin-bottom:4px;">&#9654; NOW PLAYING</div>
+              <div style="font:700 42px 'Oswald',sans-serif; line-height:.98; text-transform:uppercase; color:#fff; text-shadow:2px 0 oklch(0.66 0.24 25 /.8), -2px 0 oklch(0.86 0.13 200 /.8);">{{ nowTrack.artist }}<br><span style="font-weight:500; color:#d8d8e0;">{{ nowTrack.title }}</span></div>
+            </div>
+          </div>
+          <!-- transport -->
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; gap:14px; font:400 24px 'VT323',monospace; color:#cfcfd8;">
+              <span style="color:oklch(0.78 0.22 350);">{{ nowTrack.elapsed }}</span>
+              <div style="flex:1; height:4px; background:#23232c; border-radius:2px; position:relative;">
+                <div style="position:absolute; left:0; top:0; bottom:0; width:30%; background:oklch(0.72 0.22 350); box-shadow:0 0 10px oklch(0.66 0.24 350);"></div>
+                <div style="position:absolute; left:30%; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5px; border-radius:50%; background:#fff; box-shadow:0 0 10px oklch(0.78 0.22 350);"></div>
+              </div>
+              <span style="color:#73737e;">{{ nowTrack.dur }}</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div style="display:flex; align-items:center; gap:22px; font:400 30px 'VT323',monospace; color:#e9e9ef;">
+                <span onClick="{{ playPrev }}" style="cursor:pointer;">&#9198;</span>
+                <span style="color:oklch(0.78 0.22 350); text-shadow:0 0 12px oklch(0.66 0.24 350); cursor:pointer;">&#9208;</span>
+                <span onClick="{{ playNext }}" style="cursor:pointer;">&#9197;</span>
+              </div>
+              <div style="font:400 22px 'VT323',monospace; color:#5a5a64; letter-spacing:.12em;">&#9636; TRACKING &#9608;&#9608;&#9608;&#9608;&#9617;&#9617;</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- tracklist -->
+        <div style="display:flex; flex-direction:column;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; padding:18px 24px 12px; border-bottom:1px solid #1c1c24;">
+            <span style="font:400 24px 'VT323',monospace; color:oklch(0.86 0.13 200); letter-spacing:.14em;">PLAYLIST</span>
+            <span style="font:400 22px 'VT323',monospace; color:#5a5a64;">{{ ce.count }} CLIPS</span>
+          </div>
+          <div style="max-height:560px; overflow-y:auto; padding:6px 0;">
+            <sc-for list="{{ ce.tracks }}" as="t" hint-placeholder-count="12">
+              <div onClick="{{ t.play }}" style="position:relative; display:flex; align-items:center; gap:14px; padding:9px 24px 9px 27px; border-bottom:1px solid rgba(28,28,36,.6); cursor:pointer;" style-hover="background:#101018;">
+                <sc-if value="{{ t.now }}" hint-placeholder-val="{{ false }}"><span style="position:absolute; left:0; top:0; bottom:0; width:3px; background:oklch(0.72 0.22 350); box-shadow:0 0 12px oklch(0.66 0.24 350);"></span></sc-if>
+                <span style="font:400 22px 'VT323',monospace; color:#4f4f59; width:26px;">{{ t.n }}</span>
+                <span style="font:400 18px 'IBM Plex Mono',monospace; color:#5a5a64; width:42px;">{{ t.timecode }}</span>
+                <span style="flex:1; min-width:0;">
+                  <span style="display:block; font:600 15px 'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.02em; color:#e9e9ef; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ t.artist }}</span>
+                  <span style="display:block; font:400 18px 'VT323',monospace; color:#8a8a95; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ t.title }}</span>
+                </span>
+                <span style="font:400 18px 'IBM Plex Mono',monospace; color:#5a5a64;">{{ t.dur }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- week browser -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:0 28px; height:60px; border-top:1px solid #1c1c24; background:#0b0b10;">
+        <span onClick="{{ playPrevEp }}" style="font:400 24px 'VT323',monospace; color:#8a8a95; cursor:pointer; letter-spacing:.06em;" style-hover="color:#fff;">&#9664; {{ ce.prevLabel }}</span>
+        <span style="font:400 24px 'VT323',monospace; color:oklch(0.78 0.22 350); text-shadow:0 0 12px oklch(0.66 0.24 350); letter-spacing:.08em;">{{ ce.dateShort }}</span>
+        <span onClick="{{ playNextEp }}" style="font:400 24px 'VT323',monospace; color:#8a8a95; cursor:pointer; letter-spacing:.06em;" style-hover="color:#fff;">{{ ce.nextLabel }} &#9654;</span>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { view: "browse", year: "2000", episodeId: 1, query: "", mode: "all", nowIndex: 0 };
+
+  // ---- static data ----
+  pool() {
+    return [
+      ["Powderfinger","My Happiness","4:18"],            //0
+      ["Powderfinger","These Days","4:52"],              //1
+      ["Coldplay","Yellow","4:32"],                      //2
+      ["Coldplay","Trouble","4:30"],                     //3
+      ["Killing Heidi","Mascara","3:55"],                //4
+      ["Killing Heidi","Weir","3:46"],                   //5
+      ["Eminem","The Real Slim Shady","4:44"],           //6
+      ["Eminem","Without Me","4:50"],                    //7
+      ["Red Hot Chili Peppers","Californication","5:21"],//8
+      ["Red Hot Chili Peppers","By The Way","3:37"],     //9
+      ["Madison Avenue","Don't Call Me Baby","3:30"],    //10
+      ["Destiny's Child","Say My Name","4:31"],          //11
+      ["Blink-182","All The Small Things","2:48"],       //12
+      ["Taxiride","Get Set","3:39"],                     //13
+      ["Moby","Natural Blues","4:12"],                   //14
+      ["Muse","Sunburn","3:54"],                         //15
+      ["Foo Fighters","Learn To Fly","3:55"],            //16
+      ["Foo Fighters","All My Life","4:23"],             //17
+      ["The Cranberries","Just My Imagination","3:42"],  //18
+      ["Vanessa Amorosi","Absolutely Everybody","3:48"], //19
+      ["Madonna","Music","3:44"],                        //20
+      ["Madonna","Don't Tell Me","4:40"],                //21
+      ["The Living End","Prisoner Of Society","3:58"],   //22
+      ["Silverchair","Anthem For The Year 2000","5:01"], //23
+      ["Silverchair","The Greatest View","4:08"],        //24
+      ["Spiderbait","Calypso","3:05"],                   //25
+      ["Regurgitator","! (The Song Formerly...)","3:35"],//26
+      ["Kylie Minogue","Spinning Around","3:27"],        //27
+      ["Kylie Minogue","Can't Get You Out Of My Head","3:50"], //28
+      ["Robbie Williams","Rock DJ","4:16"],              //29
+      ["Eminem","Stan","6:44"],                          //30
+      ["Outkast","Ms. Jackson","4:30"],                  //31
+      ["The White Stripes","Fell In Love With A Girl","1:50"], //32
+      ["Nelly Furtado","I'm Like A Bird","4:03"],        //33
+      ["Gorillaz","Clint Eastwood","5:41"],              //34
+      ["System Of A Down","Chop Suey!","3:30"],          //35
+      ["Jet","Are You Gonna Be My Girl","3:34"],         //36
+      ["The Strokes","Last Nite","3:17"],                //37
+      ["Pink","Get The Party Started","3:12"],           //38
+      ["Linkin Park","In The End","3:36"],               //39
+    ];
+  }
+  rawEpisodes() {
+    return [
+      [1,"SAT",18,"MAR",2000,"All-genre night",[0,4,2,19,10,8,11,12,13,14,6,15,16,18]],
+      [2,"SAT",11,"MAR",2000,"All-request",[20,27,29,31,30,2,8,12,6,11,10,16]],
+      [3,"SAT",4,"MAR",2000,"Guest: Spiderbait",[25,22,23,26,5,1,4,0,8,16,15,13]],
+      [4,"SAT",25,"MAR",2000,"Top 50 countdown",[6,30,11,31,29,20,27,19,2,8,12,16,4,0]],
+      [5,"SAT",14,"FEB",2000,"Valentine's edition",[19,10,13,27,12,14,2,4,16,6,11]],
+      [6,"SAT",17,"JUN",2000,"Winter all-nighter",[0,2,8,16,6,30,31,11,12,4,14,15]],
+      [7,"FRI",31,"DEC",1999,"NYE special",[22,23,25,26,5,1,18,4,0,16,8]],
+      [8,"SAT",9,"SEP",2000,"Spring playlist",[27,29,20,31,30,8,2,12,6,11,16,19]],
+      [9,"SAT",13,"JAN",2001,"New season opener",[28,34,37,38,39,35,3,33,9]],
+      [10,"SAT",21,"JUL",2001,"Guest: Gorillaz",[34,3,9,28,35,37,38,39,33,29]],
+      [11,"SAT",10,"NOV",2001,"Top 100 of the year",[28,35,39,34,37,38,33,3,9]],
+      [12,"SAT",16,"MAR",2002,"All-genre night",[7,9,17,24,32,28,35,34]],
+      [13,"SAT",24,"AUG",2002,"Guest: Foo Fighters",[17,9,24,7,32,16,8,3]],
+      [14,"SAT",12,"APR",2003,"Rock revival",[36,32,17,24,9,7,34,37]],
+    ];
+  }
+  MON() { return {JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11}; }
+
+  secs(s){ const [m,x]=s.split(":").map(Number); return m*60+x; }
+  fmt(t){ const m=Math.floor(t/60), s=t%60; return m+":"+String(s).padStart(2,"0"); }
+
+  episodes() {
+    const pool = this.pool();
+    const eps = this.rawEpisodes().map(r => {
+      const [id,dow,dd,mon,yyyy,tag,idxs] = r;
+      let acc = 0;
+      const tracks = idxs.map((ix,i) => {
+        const [artist,title,dur] = pool[ix];
+        const tc = this.fmt(acc);
+        acc += this.secs(dur);
+        return { n:String(i+1).padStart(2,"0"), artist, title, dur, durSec:this.secs(dur), timecode:tc };
+      });
+      const total = acc;
+      const rm = Math.round(total/60);
+      const featured = [...new Set(tracks.map(t=>t.artist))].slice(0,4).join("  \u00b7  ");
+      const ts = new Date(yyyy, this.MON()[mon], dd).getTime();
+      return {
+        id, dow, dd:String(dd).padStart(2,"0"), monYr:mon+" "+yyyy, yyyy:String(yyyy), tag, tracks,
+        count:String(tracks.length), runtime:rm+" MIN", featured,
+        dateShort:dow+" "+String(dd).padStart(2,"0")+" "+mon+" "+yyyy,
+        dateLong:String(dd).padStart(2,"0")+" "+mon+" "+yyyy, ts,
+      };
+    });
+    eps.sort((a,b)=>a.ts-b.ts);
+    return eps;
+  }
+
+  // ---- actions ----
+  goBrowse(){ this.setState({view:"browse"}); }
+  goSearch(){ this.setState({view:"search"}); }
+  openEpisode(id){ this.setState({view:"episode", episodeId:id, nowIndex:0}); window.scrollTo(0,0); }
+
+  renderVals() {
+    const eps = this.episodes();
+    const v = this.state.view;
+    const accentNav = "font:400 22px 'Oswald',sans-serif; font-weight:600; letter-spacing:.18em; cursor:pointer; text-transform:uppercase;";
+    const navOn = accentNav+"color:oklch(0.82 0.2 350); text-shadow:0 0 12px oklch(0.66 0.24 350 /.7); border-bottom:2px solid oklch(0.72 0.22 350); padding-bottom:3px;";
+    const navOff = accentNav+"color:#8a8a95;";
+
+    // ----- browse -----
+    const yearsList = [...new Set(eps.map(e=>e.yyyy))].sort();
+    const chip = "font:400 24px 'VT323',monospace; letter-spacing:.06em; padding:5px 16px; cursor:pointer; border:1px solid #2a2a34;";
+    const years = yearsList.map(y => ({
+      label:y,
+      select:()=>this.setState({year:y}),
+      style: y===this.state.year
+        ? chip+"color:#08080c; background:oklch(0.78 0.22 350); border-color:oklch(0.78 0.22 350); box-shadow:0 0 14px oklch(0.66 0.24 350 /.5);"
+        : chip+"color:#b6b6c0; background:transparent;",
+    }));
+    const browseEps = eps.filter(e=>e.yyyy===this.state.year)
+      .sort((a,b)=>b.ts-a.ts)
+      .map(e => ({ ...e, open:()=>this.openEpisode(e.id) }));
+
+    // ----- search -----
+    const q = this.state.query.trim().toLowerCase();
+    const mode = this.state.mode;
+    const modeDefs = [["all","ALL"],["date","BY DATE"],["artist","ARTIST / SONG"]];
+    const mchip = "font:400 22px 'VT323',monospace; letter-spacing:.06em; padding:6px 18px; cursor:pointer; border:1px solid #2a2a34;";
+    const modes = modeDefs.map(([k,l]) => ({
+      label:l, select:()=>this.setState({mode:k}),
+      style: k===mode
+        ? mchip+"color:#08080c; background:oklch(0.86 0.13 200); border-color:oklch(0.86 0.13 200);"
+        : mchip+"color:#8a8a95; background:transparent;",
+    }));
+    const sugg = ["Powderfinger","Silverchair","18 Mar 2000","Eminem","2001","Kylie Minogue"];
+    const suggestions = sugg.map(s => ({ label:s, select:()=>this.setState({query:s}) }));
+
+    let results = [], resultSummary = "", noResults = false;
+    if (q) {
+      const wantDate = mode==="all" || mode==="date";
+      const wantTrack = mode==="all" || mode==="artist";
+      const sortedDesc = [...eps].sort((a,b)=>b.ts-a.ts);
+      sortedDesc.forEach(e => {
+        const hits = wantTrack ? e.tracks.filter(t => (t.artist+" "+t.title).toLowerCase().includes(q)) : [];
+        const dateHit = wantDate && (e.dateShort.toLowerCase().includes(q) || e.dateLong.toLowerCase().includes(q) || e.yyyy.includes(q) || e.tag.toLowerCase().includes(q));
+        if (hits.length) {
+          const more = hits.length>1 ? "  +"+(hits.length-1)+" more" : "";
+          results.push({ dd:e.dd, monYr:e.monYr, primary:hits[0].artist+" \u2014 "+hits[0].title,
+            secondary:e.dateShort+"  \u00b7  track "+hits[0].n+"/"+e.count+more, open:()=>this.openEpisode(e.id) });
+        } else if (dateHit) {
+          results.push({ dd:e.dd, monYr:e.monYr, primary:e.tag,
+            secondary:e.dow+"  \u00b7  "+e.count+" clips  \u00b7  "+e.runtime, open:()=>this.openEpisode(e.id) });
+        }
+      });
+      const epSet = new Set();
+      results.forEach((r,i)=>epSet.add(i));
+      if (mode==="artist") resultSummary = '"'+this.state.query.trim()+'"  \u2014  found in '+results.length+' episode'+(results.length===1?"":"s");
+      else if (mode==="date") resultSummary = results.length+' episode'+(results.length===1?"":"s")+' matching "'+this.state.query.trim()+'"';
+      else resultSummary = results.length+' result'+(results.length===1?"":"s")+' for "'+this.state.query.trim()+'"';
+      noResults = results.length===0;
+    }
+
+    // ----- episode -----
+    const idx = eps.findIndex(e=>e.id===this.state.episodeId);
+    const safeIdx = idx<0 ? 0 : idx;
+    const baseEp = eps[safeIdx];
+    const ni = Math.min(this.state.nowIndex, baseEp.tracks.length-1);
+    const ce = {
+      ...baseEp,
+      tracks: baseEp.tracks.map((t,i)=>({ ...t, now:i===ni, play:()=>this.setState({nowIndex:i}) })),
+      prevLabel: eps[safeIdx-1] ? eps[safeIdx-1].dateLong : "ARCHIVE START",
+      nextLabel: eps[safeIdx+1] ? eps[safeIdx+1].dateLong : "ARCHIVE END",
+    };
+    const nt = baseEp.tracks[ni];
+    const nowTrack = { artist:nt.artist, title:nt.title, dur:nt.dur, timecode:nt.timecode, elapsed:this.fmt(Math.round(nt.durSec*0.3)) };
+
+    return {
+      isBrowse: v==="browse", isSearch: v==="search", isEpisode: v==="episode",
+      goBrowse:()=>this.goBrowse(), goSearch:()=>this.goSearch(),
+      browseNavStyle: v==="browse"?navOn:navOff,
+      searchNavStyle: v==="search"?navOn:navOff,
+      years, episodes: browseEps,
+      query:this.state.query, onQuery:(e)=>this.setState({query:e.target.value}),
+      modes, suggestions,
+      noQuery: !q, hasQuery: !!q, results, resultSummary, noResults,
+      ce, nowTrack,
+      playPrev:()=>this.setState(s=>({nowIndex:Math.max(0,s.nowIndex-1)})),
+      playNext:()=>this.setState(s=>({nowIndex:Math.min(ce.tracks.length-1,s.nowIndex+1)})),
+      playPrevEp:()=> eps[safeIdx-1] && this.openEpisode(eps[safeIdx-1].id),
+      playNextEp:()=> eps[safeIdx+1] && this.openEpisode(eps[safeIdx+1].id),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -12,19 +12,16 @@ const ctx = await esbuild.context({
   sourcemap: true,
   define: {
     "process.env.NODE_ENV": watch ? '"development"' : '"production"',
-    "import.meta.env.API_BASE": JSON.stringify(process.env.API_BASE ?? 'http://localhost:8787'),
+    "import.meta.env.API_BASE": JSON.stringify(
+      process.env.API_BASE ?? "http://localhost:8787",
+    ),
   },
   loader: { ".tsx": "tsx", ".ts": "ts" },
 });
 
 if (watch) {
   await ctx.watch();
-  const { host, port } = await ctx.serve({
-    servedir: ".",
-    fallback: "public/index.html",
-    port: 3000,
-  });
-  console.log(`Listening on http://${host}:${port}`);
+  console.log("Watching for changes…");
 } else {
   await ctx.rebuild();
   await ctx.dispose();

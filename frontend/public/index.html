@@ -3,8 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RAGE</title>
+    <title>RAGE²</title>
     <link rel="manifest" href="/manifest.json" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Oswald:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #08080c;
+        color: #e9e9ef;
+        font-family: 'IBM Plex Mono', monospace;
+        min-height: 100vh;
+      }
+      a { color: inherit; }
+      button { font-family: inherit; }
+      input { font-family: inherit; }
+      input::placeholder { color: #4f4f59; }
+      @keyframes recblink { 0%,49%{opacity:1} 50%,100%{opacity:.12} }
+      @keyframes crtflick { 0%,100%{opacity:.05} 50%{opacity:.10} }
+    </style>
   </head>
   <body>
     <div id="root"></div>
