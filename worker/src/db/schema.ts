@@ -19,6 +19,7 @@ export const videos = sqliteTable('videos', {
   title:       text('title').notNull(),
   artist:      text('artist').notNull(),
   label:       text('label'),
-  youtube_id:  text('youtube_id'),
-  thumbnail:   text('thumbnail'),
+  youtube_id:   text('youtube_id'),
+  thumbnail:    text('thumbnail'),
+  match_status: text('match_status').notNull().default('review'),
 })

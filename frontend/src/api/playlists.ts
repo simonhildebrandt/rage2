@@ -29,6 +29,7 @@ export interface Video {
   label: string | null
   youtube_id: string | null
   thumbnail: string | null
+  match_status?: string
 }
 
 export const getPlaylists = (params?: { page?: number; year?: string }) =>

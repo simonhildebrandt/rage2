@@ -59,6 +59,19 @@ export function Shell({ children }: { children: ReactNode }) {
       </div>
 
       {children}
+
+      <div style={{ textAlign: 'center', padding: '40px 0 28px' }}>
+        <a
+          href={`https://login-with.link/login/${import.meta.env.LWL_KEY}`}
+          style={{
+            fontFamily: "'VT323',monospace", fontSize: 18,
+            color: '#3a3a44', textDecoration: 'none',
+            letterSpacing: '.1em',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#8a8a95' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
+        >ADMIN LOGIN</a>
+      </div>
     </>
   )
 }

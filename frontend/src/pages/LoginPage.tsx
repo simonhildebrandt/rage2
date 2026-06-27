@@ -9,7 +9,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const token = params.get('token')
+    const token = params.get('lwl-token')
     if (token) {
       login(token)
       navigate('/admin', { replace: true })
