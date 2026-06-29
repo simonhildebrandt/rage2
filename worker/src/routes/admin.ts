@@ -7,6 +7,7 @@ import { scrapePlaylist } from '../cron/playlistScraper'
 import { getDb } from '../db/client'
 import { playlists, videos } from '../db/schema'
 import { sql, count, eq, and, lt, gt, asc, desc } from 'drizzle-orm'
+import { pickYouTubeKey } from '../types'
 
 export const adminRoutes = new Hono<{ Bindings: Env }>()
 
@@ -31,7 +32,7 @@ adminRoutes.patch('/videos/:id', async (c) => {
 adminRoutes.get('/search-youtube', async (c) => {
   const q = c.req.query('q') ?? ''
   if (!q.trim()) return c.json([])
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=5&key=${c.env.YOUTUBE_API_KEY}`
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=5&key=${pickYouTubeKey(c.env)}`
   const res = await fetch(url)
   if (!res.ok) return c.json({ error: 'YouTube search failed' }, 502)
   const data = await res.json() as any

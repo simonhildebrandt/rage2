@@ -1,6 +1,7 @@
 export class QuotaError extends Error {}
 
 import type { Env } from '../types'
+import { pickYouTubeKey } from '../types'
 import { getDb } from '../db/client'
 import { videos } from '../db/schema'
 import { eq } from 'drizzle-orm'
@@ -19,7 +20,7 @@ export async function searchYoutube(
   artist: string
 ): Promise<void> {
   const query = encodeURIComponent(`${artist} ${title}`)
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${env.YOUTUBE_API_KEY}`
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${pickYouTubeKey(env)}`
 
   const response = await fetch(url)
   if (response.status === 429) throw new QuotaError('YouTube API quota exceeded')

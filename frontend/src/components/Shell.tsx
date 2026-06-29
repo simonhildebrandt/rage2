@@ -62,7 +62,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
       {children}
 
-      <div style={{ textAlign: 'center', padding: '40px 0 28px' }}>
+      <div style={{ textAlign: 'center', padding: '40px 0 28px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 28 }}>
         {token ? (
           <Link
             to="/admin"
@@ -86,6 +86,16 @@ export function Shell({ children }: { children: ReactNode }) {
             onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
           >ADMIN LOGIN</a>
         )}
+        <a
+          href="mailto:simonhildebrandt@gmail.com?subject=rage2%20correction"
+          style={{
+            fontFamily: "'VT323',monospace", fontSize: 18,
+            color: '#3a3a44', textDecoration: 'none',
+            letterSpacing: '.1em',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#8a8a95' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#3a3a44' }}
+        >REPORT PROBLEMS</a>
       </div>
     </>
   )

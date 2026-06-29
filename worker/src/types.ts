@@ -1,3 +1,8 @@
+export function pickYouTubeKey(env: Env): string {
+  const keys = env.YOUTUBE_API_KEY.split(',').map(k => k.trim()).filter(Boolean)
+  return keys[Math.floor(Math.random() * keys.length)]
+}
+
 export interface Env {
   DB: D1Database
   PLAYLIST_QUEUE: Queue<PlaylistQueueMessage>
