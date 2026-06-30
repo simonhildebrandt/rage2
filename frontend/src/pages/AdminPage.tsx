@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
-import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, type YouTubeResult, type IssueNeighbours } from '../api/admin'
+import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
 
 type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
@@ -55,6 +55,7 @@ export default function AdminPage() {
   const [issueNeighbours, setIssueNeighbours] = useState<IssueNeighbours>({ prev: null, next: null })
   const [drawerTrack, setDrawerTrack] = useState<Video | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
+  const [globalUnverified, setGlobalUnverified] = useState<number | null>(null)
 
   useEffect(() => {
     getPlaylists().then(ps => {
@@ -62,6 +63,7 @@ export default function AdminPage() {
       if (ps.length) setSelectedId(ps[0].id)
       setPlaylistsLoaded(true)
     })
+    getAdminStatus().then(s => setGlobalUnverified(s.unverifiedCount))
   }, [])
 
   const handleTriggerScrape = async () => {
@@ -276,11 +278,22 @@ export default function AdminPage() {
             )}
           </div>
 
+          {globalUnverified !== null && (
+            <div>
+              <span style={{ color: 'oklch(0.68 0.16 25 / .9)', fontSize: 11 }}>
+                {globalUnverified} unverified total
+              </span>
+            </div>
+          )}
+
           {/* Progress */}
           <div style={{ minWidth: 260 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', font: "500 12px 'IBM Plex Mono',monospace", color: '#9aa0ab', marginBottom: 6 }}>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', font: "500 12px 'IBM Plex Mono',monospace", color: '#9aa0ab', marginBottom: 6 }}>
               <span>{counts.verified} / {tracks.length} verified</span>
-              <span style={{ color: '#7f8794' }}>{needsAttention} need attention</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 16 }}>
+                <span style={{ color: '#7f8794' }}>{needsAttention} need attention</span>
+              </div>
             </div>
             <div style={{ height: 6, background: '#1b1e25', borderRadius: 3, overflow: 'hidden', border: '1px solid #23262e' }}>
               <div style={{

@@ -80,7 +80,8 @@ adminRoutes.get('/playlists/:id/issue-neighbours', async (c) => {
 
 adminRoutes.get('/status', async (c) => {
   const db = getDb(c.env)
-  const [{ playlistCount }] = await db.select({ playlistCount: count() }).from(playlists)
-  const [{ videoCount }]    = await db.select({ videoCount: count() }).from(videos)
-  return c.json({ playlistCount, videoCount })
+  const [{ playlistCount }]   = await db.select({ playlistCount: count() }).from(playlists)
+  const [{ videoCount }]      = await db.select({ videoCount: count() }).from(videos)
+  const [{ unverifiedCount }] = await db.select({ unverifiedCount: count() }).from(videos).where(sql`${videos.match_status} != 'verified'`)
+  return c.json({ playlistCount, videoCount, unverifiedCount })
 })

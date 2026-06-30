@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useAutoplay } from '../providers/AutoplayProvider'
 import { useAuth } from '../providers/AuthProvider'
 
@@ -8,6 +8,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const isBrowse = loc.pathname === '/'
   const isSearch = loc.pathname === '/search'
   const { token } = useAuth()
+  const [aboutOpen, setAboutOpen] = useState(false)
 
   return (
     <>
@@ -52,13 +53,56 @@ export function Shell({ children }: { children: ReactNode }) {
               boxShadow: '0 0 10px oklch(0.66 0.24 25)',
               animation: 'recblink 1.1s steps(1) infinite',
             }} />
-            <span style={{ fontFamily: "'VT323',monospace", fontSize: 22, color: 'oklch(0.86 0.13 200)' }}>
-              REC · ARCHIVE
-            </span>
+            <button
+              onClick={() => setAboutOpen(true)}
+              style={{
+                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+                fontFamily: "'VT323',monospace", fontSize: 22,
+                color: 'oklch(0.86 0.13 200)',
+              }}
+            >REC · ABOUT</button>
           </div>
           <AutoplayToggle />
         </div>
       </div>
+
+      {aboutOpen && (
+        <>
+          <div
+            onClick={() => setAboutOpen(false)}
+            style={{ position: 'fixed', inset: 0, zIndex: 70, background: 'rgba(0,0,0,.7)' }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+            zIndex: 71, width: 'min(520px, calc(100vw - 48px))',
+            background: '#0d0e11', border: '1px solid #2b2f39', borderRadius: 10,
+            padding: '32px 36px',
+            fontFamily: "'IBM Plex Mono',monospace",
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+              <span style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 20, letterSpacing: '.3em' }}>
+                RAGE²
+              </span>
+              <button
+                onClick={() => setAboutOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#6b727f', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}
+              >✕</button>
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.75, color: '#9aa0ab', margin: 0 }}>
+              Rage² is my attempt to bring back{' '}
+              <a href="https://rageagain.com" target="_blank" rel="noopener noreferrer" style={{ color: 'oklch(0.74 0.15 350)' }}>rageagain.com</a>
+              {' '}(by the excellent <a href="https://www.pjgalbraith.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'oklch(0.74 0.15 350)' }}>Patrick Galbraith</a>
+              ) itself an attempt to liberate Rage from it's current state, trapped on broadcast TV.
+            </p>
+            <p style={{ fontSize: 13, lineHeight: 1.75, color: '#9aa0ab', margin: '14px 0 0' }}>
+              It runs on Cloudflare workers and the code is available here:{' '}
+              <a href="https://github.com/simonhildebrandt/rage2" target="_blank" rel="noopener noreferrer" style={{ color: 'oklch(0.74 0.15 350)' }}>
+                https://github.com/simonhildebrandt/rage2
+              </a>
+            </p>
+          </div>
+        </>
+      )}
 
       {children}
 
