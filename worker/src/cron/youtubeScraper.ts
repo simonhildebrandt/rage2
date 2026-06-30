@@ -4,7 +4,7 @@ import type { Env } from '../types'
 import { pickYouTubeKey } from '../types'
 import { getDb } from '../db/client'
 import { videos } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq, isNotNull, ne } from 'drizzle-orm'
 
 interface YoutubeSearchResponse {
   items: Array<{
@@ -19,6 +19,26 @@ export async function searchYoutube(
   title: string,
   artist: string
 ): Promise<void> {
+  const db = getDb(env)
+
+  const [existing] = await db
+    .select({ youtube_id: videos.youtube_id, thumbnail: videos.thumbnail })
+    .from(videos)
+    .where(and(
+      eq(videos.title, title),
+      eq(videos.artist, artist),
+      isNotNull(videos.youtube_id),
+      ne(videos.id, video_id),
+    ))
+    .limit(1)
+
+  if (existing?.youtube_id) {
+    await db.update(videos)
+      .set({ youtube_id: existing.youtube_id, thumbnail: existing.thumbnail })
+      .where(eq(videos.id, video_id))
+    return
+  }
+
   const query = encodeURIComponent(`${artist} ${title}`)
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${pickYouTubeKey(env)}`
 
@@ -33,8 +53,7 @@ export async function searchYoutube(
   const youtube_id = item.id.videoId
   const thumbnail = item.snippet.thumbnails.default.url
 
-  await getDb(env)
-    .update(videos)
+  await db.update(videos)
     .set({ youtube_id, thumbnail })
     .where(eq(videos.id, video_id))
 }
