@@ -33,8 +33,9 @@ export async function searchYoutube(
     .limit(1)
 
   if (existing?.youtube_id) {
+    console.log(`Found existing YouTube match for "${artist} - ${title}": ${existing.youtube_id}`)
     await db.update(videos)
-      .set({ youtube_id: existing.youtube_id, thumbnail: existing.thumbnail })
+      .set({ youtube_id: existing.youtube_id, thumbnail: existing.thumbnail, match_status: 'verified' })
       .where(eq(videos.id, video_id))
     return
   }

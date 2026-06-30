@@ -44,6 +44,16 @@ adminRoutes.get('/search-youtube', async (c) => {
   })))
 })
 
+adminRoutes.post('/videos/:id/search-youtube', async (c) => {
+  const id = Number(c.req.param('id'))
+  const db = getDb(c.env)
+  const [video] = await db.select().from(videos).where(eq(videos.id, id))
+  if (!video) return c.json({ error: 'Not found' }, 404)
+  await searchYoutube(c.env, id, video.title, video.artist)
+  const [updated] = await db.select().from(videos).where(eq(videos.id, id))
+  return c.json({ ok: true, youtube_id: updated.youtube_id, thumbnail: updated.thumbnail })
+})
+
 adminRoutes.patch('/videos/:id/match', async (c) => {
   const id = Number(c.req.param('id'))
   const db = getDb(c.env)
