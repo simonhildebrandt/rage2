@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
-import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, getPlaylistNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
+import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, retryYoutube, getIssueNeighbours, getPlaylistNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
 import { searchArchive } from '../api/search'
 
 type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
@@ -58,6 +58,7 @@ export default function AdminPage() {
   const [drawerTrack, setDrawerTrack] = useState<Video | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [globalUnverified, setGlobalUnverified] = useState<number | null>(null)
+  const [retryingYoutube, setRetryingYoutube] = useState(false)
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
   const [comboResults, setComboResults] = useState<Playlist[]>([])
   const [comboSearching, setComboSearching] = useState(false)
@@ -315,10 +316,24 @@ export default function AdminPage() {
           </div>
 
           {globalUnverified !== null && (
-            <div>
-              <span style={{ color: 'oklch(0.68 0.16 25 / .9)', fontSize: 11 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'oklch(0.68 0.16 25 / .9)', font: "500 11px 'IBM Plex Mono',monospace" }}>
                 {globalUnverified} unverified total
               </span>
+              <button
+                title="Retry YouTube search for all unmatched videos"
+                disabled={retryingYoutube}
+                onClick={async () => {
+                  setRetryingYoutube(true)
+                  try { await retryYoutube() } finally { setRetryingYoutube(false) }
+                }}
+                style={{
+                  background: 'none', border: '1px solid #2b2f39', borderRadius: 4,
+                  padding: '2px 7px', cursor: retryingYoutube ? 'default' : 'pointer',
+                  font: "500 11px 'IBM Plex Mono',monospace",
+                  color: retryingYoutube ? '#4d5460' : '#7f8794',
+                }}
+              >{retryingYoutube ? '…' : '↺ retry'}</button>
             </div>
           )}
 

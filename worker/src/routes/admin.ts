@@ -4,6 +4,7 @@ import { authMiddleware } from '../middleware/auth'
 import { runScrape } from '../cron/scraper'
 import { searchYoutube } from '../cron/youtubeScraper'
 import { scrapePlaylist } from '../cron/playlistScraper'
+import { requeueUnmatchedVideos } from '../cron/youtubeRetry'
 import { getDb } from '../db/client'
 import { playlists, videos } from '../db/schema'
 import { sql, count, eq, and, lt, gt, asc, desc } from 'drizzle-orm'
@@ -15,6 +16,11 @@ adminRoutes.use('*', authMiddleware)
 
 adminRoutes.post('/scrape', async (c) => {
   await runScrape(c.env)
+  return c.json({ ok: true })
+})
+
+adminRoutes.post('/retry-youtube', async (c) => {
+  await requeueUnmatchedVideos(c.env)
   return c.json({ ok: true })
 })
 

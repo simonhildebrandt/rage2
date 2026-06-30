@@ -27,7 +27,7 @@ export default {
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     switch (event.cron) {
       case '0 20 * * *': return ctx.waitUntil(runScrape(env))           // Saturday scrape
-      case '0 4 * * *': return ctx.waitUntil(requeueUnmatchedVideos(env)) // Daily YouTube retry
+      case '27 7 * * *': return ctx.waitUntil(requeueUnmatchedVideos(env)) // Daily YouTube retry
     }
   },
 
