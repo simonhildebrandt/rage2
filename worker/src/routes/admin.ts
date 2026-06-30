@@ -61,6 +61,22 @@ adminRoutes.post('/playlists/:id/scrape', async (c) => {
   return c.json({ ok: true })
 })
 
+adminRoutes.get('/playlists/:id/neighbours', async (c) => {
+  const id = Number(c.req.param('id'))
+  const db = getDb(c.env)
+  const [current] = await db.select({ aired_date: playlists.aired_date }).from(playlists).where(eq(playlists.id, id))
+  if (!current) return c.json({ error: 'Not found' }, 404)
+
+  const cols = { id: playlists.id, aired_date: playlists.aired_date, title: playlists.title }
+
+  const [prev, next] = await Promise.all([
+    db.select(cols).from(playlists).where(lt(playlists.aired_date, current.aired_date)).orderBy(desc(playlists.aired_date)).limit(1).then(r => r[0] ?? null),
+    db.select(cols).from(playlists).where(gt(playlists.aired_date, current.aired_date)).orderBy(asc(playlists.aired_date)).limit(1).then(r => r[0] ?? null),
+  ])
+
+  return c.json({ prev, next })
+})
+
 adminRoutes.get('/playlists/:id/issue-neighbours', async (c) => {
   const id = Number(c.req.param('id'))
   const db = getDb(c.env)

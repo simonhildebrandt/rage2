@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
-import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
+import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, getIssueNeighbours, getPlaylistNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
+import { searchArchive } from '../api/search'
 
 type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
@@ -53,14 +54,18 @@ export default function AdminPage() {
   const [scrapingAll, setScrapingAll] = useState(false)
   const [playlistsLoaded, setPlaylistsLoaded] = useState(false)
   const [issueNeighbours, setIssueNeighbours] = useState<IssueNeighbours>({ prev: null, next: null })
+  const [playlistNeighbours, setPlaylistNeighbours] = useState<IssueNeighbours>({ prev: null, next: null })
   const [drawerTrack, setDrawerTrack] = useState<Video | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [globalUnverified, setGlobalUnverified] = useState<number | null>(null)
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
+  const [comboResults, setComboResults] = useState<Playlist[]>([])
+  const [comboSearching, setComboSearching] = useState(false)
 
   useEffect(() => {
     getPlaylists().then(ps => {
       setPlaylists(ps)
-      if (ps.length) setSelectedId(ps[0].id)
+      if (ps.length) { setSelectedId(ps[0].id); setSelectedPlaylist(ps[0]) }
       setPlaylistsLoaded(true)
     })
     getAdminStatus().then(s => setGlobalUnverified(s.unverifiedCount))
@@ -85,10 +90,28 @@ export default function AdminPage() {
     setFilter('all')
     setSelectedIds(new Set())
     getPlaylist(selectedId)
-      .then(p => setTracks(p.videos))
+      .then(p => { setTracks(p.videos); setSelectedPlaylist(p) })
       .finally(() => setLoadingTracks(false))
     getIssueNeighbours(selectedId).then(setIssueNeighbours)
+    getPlaylistNeighbours(selectedId).then(setPlaylistNeighbours)
   }, [selectedId])
+
+  useEffect(() => {
+    if (!comboOpen || !comboQuery.trim()) { setComboResults([]); return }
+    const timer = setTimeout(async () => {
+      setComboSearching(true)
+      try {
+        const results = await searchArchive({ q: comboQuery, mode: 'date' })
+        setComboResults(results.map(r => ({
+          id: r.playlist_id, aired_date: r.aired_date, title: r.playlist_title,
+          source_url: '', scraped_at: '',
+        })))
+      } finally {
+        setComboSearching(false)
+      }
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [comboQuery, comboOpen])
 
   const updateTrack = (videoId: number, patch: Partial<Video>) =>
     setTracks(ts => ts.map(t => t.id === videoId ? { ...t, ...patch } : t))
@@ -111,11 +134,8 @@ export default function AdminPage() {
   const needsAttention = counts.review + counts.rejected + counts.novideo
 
   const shown = filter === 'all' ? tracks : tracks.filter(t => statusOf(t) === filter)
-  const selectedPlaylist = playlists.find(p => p.id === selectedId)
 
-  const filteredPlaylists = comboQuery
-    ? playlists.filter(p => `${fmtDate(p.aired_date)} ${p.title}`.toLowerCase().includes(comboQuery.toLowerCase()))
-    : playlists
+  const filteredPlaylists = comboQuery.trim() ? comboResults : playlists
 
   const allShownSelected = shown.length > 0 && shown.every(t => selectedIds.has(t.id))
   const someShownSelected = shown.some(t => selectedIds.has(t.id))
@@ -133,10 +153,11 @@ export default function AdminPage() {
     setScraping(true)
     try {
       await rescrapePlaylist(selectedId)
-      const [p, neighbours] = await Promise.all([getPlaylist(selectedId), getIssueNeighbours(selectedId)])
+      const [p, issueN, playlistN] = await Promise.all([getPlaylist(selectedId), getIssueNeighbours(selectedId), getPlaylistNeighbours(selectedId)])
       setTracks(p.videos)
       setSelectedIds(new Set())
-      setIssueNeighbours(neighbours)
+      setIssueNeighbours(issueN)
+      setPlaylistNeighbours(playlistN)
     } finally {
       setScraping(false)
     }
@@ -202,6 +223,12 @@ export default function AdminPage() {
                 disabled={!issueNeighbours.next}
                 onClick={() => issueNeighbours.next && setSelectedId(issueNeighbours.next.id)}
               >◀</IssueNavBtn>
+              <IssueNavBtn
+                color="oklch(0.65 0.1 240)"
+                title={playlistNeighbours.next ? `◀  ${playlistNeighbours.next.title}` : 'No newer playlists'}
+                disabled={!playlistNeighbours.next}
+                onClick={() => playlistNeighbours.next && setSelectedId(playlistNeighbours.next.id)}
+              >◀</IssueNavBtn>
             <div style={{ position: 'relative' }}>
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', minWidth: 320 }}>
                 <input
@@ -228,7 +255,10 @@ export default function AdminPage() {
                     background: '#14161b', border: '1px solid #2b2f39', borderRadius: 8,
                     boxShadow: '0 20px 50px rgba(0,0,0,.5)', padding: 5,
                   }}>
-                    {filteredPlaylists.length === 0 && (
+                    {comboSearching && (
+                      <div style={{ padding: '10px 11px', font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>Searching…</div>
+                    )}
+                    {!comboSearching && filteredPlaylists.length === 0 && (
                       <div style={{ padding: '10px 11px', font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>No results</div>
                     )}
                     {filteredPlaylists.map(p => (
@@ -236,7 +266,7 @@ export default function AdminPage() {
                         key={p.id}
                         label={`${fmtDate(p.aired_date)}  ·  ${p.title}`}
                         selected={p.id === selectedId}
-                        onClick={() => { setSelectedId(p.id); setComboOpen(false); setComboQuery('') }}
+                        onClick={() => { setSelectedId(p.id); setSelectedPlaylist(p); setComboOpen(false); setComboQuery('') }}
                       />
                     ))}
                   </div>
@@ -256,11 +286,17 @@ export default function AdminPage() {
               }}
             >{scraping ? '…' : '↺'}</button>
               <IssueNavBtn
+                color="oklch(0.65 0.1 240)"
+                title={playlistNeighbours.prev ? `▶  ${playlistNeighbours.prev.title}` : 'No older playlists'}
+                disabled={!playlistNeighbours.prev}
+                onClick={() => playlistNeighbours.prev && setSelectedId(playlistNeighbours.prev.id)}
+              >▶</IssueNavBtn>
+              <IssueNavBtn
                 title={issueNeighbours.prev ? `▶  ${issueNeighbours.prev.title}` : 'No older playlists with issues'}
                 disabled={!issueNeighbours.prev}
                 onClick={() => issueNeighbours.prev && setSelectedId(issueNeighbours.prev.id)}
               >▶</IssueNavBtn>
-              {selectedPlaylist && (
+              {selectedPlaylist?.source_url && (
                 <a
                   href={selectedPlaylist.source_url}
                   target="_blank"
@@ -554,11 +590,12 @@ function AdminBtn({ children, onClick }: { children: React.ReactNode; onClick: (
   )
 }
 
-function IssueNavBtn({ children, title, disabled, onClick }: {
+function IssueNavBtn({ children, title, disabled, onClick, color = 'oklch(0.74 0.15 350)' }: {
   children: React.ReactNode
   title: string
   disabled: boolean
   onClick: () => void
+  color?: string
 }) {
   const [hovered, setHovered] = useState(false)
   return (
@@ -570,8 +607,9 @@ function IssueNavBtn({ children, title, disabled, onClick }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         height: 38, width: 38, borderRadius: 6, flexShrink: 0,
-        background: 'none', border: `1px solid ${disabled ? '#2b2f39' : hovered ? 'oklch(0.74 0.15 350 / .6)' : 'oklch(0.74 0.15 350 / .3)'}`,
-        color: disabled ? '#3a4150' : hovered ? 'oklch(0.88 0.14 350)' : 'oklch(0.74 0.15 350)',
+        background: 'none',
+        border: `1px solid ${disabled ? '#2b2f39' : hovered ? `color-mix(in srgb, ${color} 60%, transparent)` : `color-mix(in srgb, ${color} 30%, transparent)`}`,
+        color: disabled ? '#3a4150' : hovered ? `color-mix(in srgb, ${color} 110%, white)` : color,
         cursor: disabled ? 'default' : 'pointer',
         fontSize: 12, fontFamily: "'IBM Plex Sans',sans-serif",
         display: 'flex', alignItems: 'center', justifyContent: 'center',

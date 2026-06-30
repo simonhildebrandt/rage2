@@ -27,6 +27,9 @@ export interface IssueNeighbours { prev: IssueNeighbour | null; next: IssueNeigh
 export const getIssueNeighbours = (id: number) =>
   api.get<IssueNeighbours>(`/api/admin/playlists/${id}/issue-neighbours`).then(r => r.data)
 
+export const getPlaylistNeighbours = (id: number) =>
+  api.get<IssueNeighbours>(`/api/admin/playlists/${id}/neighbours`).then(r => r.data)
+
 export interface AdminStatus { playlistCount: number; videoCount: number; unverifiedCount: number }
 export const getAdminStatus = () =>
   api.get<AdminStatus>('/api/admin/status').then(r => r.data)
