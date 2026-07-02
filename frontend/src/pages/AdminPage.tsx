@@ -322,10 +322,10 @@ export default function AdminPage() {
                 onClick={() => getAdminStatus().then(s => setGlobalUnverified(s.unverifiedCount))}
                 style={{
                   background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
-                  font: "500 11px 'IBM Plex Mono',monospace", color: '#4d5460',
+                  font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460',
                 }}
               >↺</button>
-              <span style={{ color: 'oklch(0.68 0.16 25 / .9)', font: "500 11px 'IBM Plex Mono',monospace" }}>
+              <span style={{ color: 'oklch(0.68 0.16 25 / .9)', font: "500 12px 'IBM Plex Mono',monospace" }}>
                 {globalUnverified} unverified total
               </span>
               <button
@@ -338,7 +338,7 @@ export default function AdminPage() {
                 style={{
                   background: 'none', border: '1px solid #2b2f39', borderRadius: 4,
                   padding: '2px 7px', cursor: retryingYoutube ? 'default' : 'pointer',
-                  font: "500 11px 'IBM Plex Mono',monospace",
+                  font: "500 12px 'IBM Plex Mono',monospace",
                   color: retryingYoutube ? '#4d5460' : '#7f8794',
                 }}
               >{retryingYoutube ? '…' : '↺ retry'}</button>
