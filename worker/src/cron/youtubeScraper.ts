@@ -44,7 +44,7 @@ export async function searchYoutube(
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${query}&type=video&maxResults=1&key=${pickYouTubeKey(env)}`
 
   const response = await fetch(url)
-  if (response.status === 429) throw new QuotaError('YouTube API quota exceeded')
+  if (response.status === 429) throw new QuotaError(`YouTube API quota exceeded, trying to search for ${video_id} - ${artist} - ${title}`)
   if (!response.ok) throw new Error(`YouTube search failed: ${response.status}`)
 
   const data = await response.json() as YoutubeSearchResponse

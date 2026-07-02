@@ -317,6 +317,14 @@ export default function AdminPage() {
 
           {globalUnverified !== null && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                title="Refresh unverified count"
+                onClick={() => getAdminStatus().then(s => setGlobalUnverified(s.unverifiedCount))}
+                style={{
+                  background: 'none', border: 'none', padding: '2px 4px', cursor: 'pointer',
+                  font: "500 11px 'IBM Plex Mono',monospace", color: '#4d5460',
+                }}
+              >↺</button>
               <span style={{ color: 'oklch(0.68 0.16 25 / .9)', font: "500 11px 'IBM Plex Mono',monospace" }}>
                 {globalUnverified} unverified total
               </span>

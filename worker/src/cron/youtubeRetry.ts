@@ -8,6 +8,7 @@ export async function requeueUnmatchedVideos(env: Env): Promise<void> {
     .select({ id: videos.id, title: videos.title, artist: videos.artist })
     .from(videos)
     .where(isNull(videos.youtube_id))
+    .limit(100)
 
   for (const video of unmatched) {
     await env.YOUTUBE_QUEUE.send({
