@@ -5,10 +5,11 @@ import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/pla
 import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, retryYoutube, getIssueNeighbours, getPlaylistNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
 import { searchArchive } from '../api/search'
 
-type MatchStatus = 'verified' | 'review' | 'rejected' | 'novideo'
+type MatchStatus = 'pending' | 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
 
 const STATUS: Record<MatchStatus, { label: string; color: string; bg: string; border: string }> = {
+  pending:  { label: 'Pending',      color: '#6b727f',              bg: 'rgba(107,114,127,.14)',       border: 'rgba(107,114,127,.3)'      },
   verified: { label: 'Verified',     color: 'oklch(0.72 0.13 155)', bg: 'oklch(0.72 0.13 155 / .14)', border: 'oklch(0.72 0.13 155 / .3)' },
   review:   { label: 'Needs review', color: 'oklch(0.8 0.13 75)',   bg: 'oklch(0.8 0.13 75 / .14)',   border: 'oklch(0.8 0.13 75 / .3)'   },
   rejected: { label: 'Rejected',     color: 'oklch(0.68 0.16 25)',  bg: 'oklch(0.68 0.16 25 / .14)',  border: 'oklch(0.68 0.16 25 / .3)'  },
@@ -17,6 +18,7 @@ const STATUS: Record<MatchStatus, { label: string; color: string; bg: string; bo
 
 const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'all',      label: 'All' },
+  { key: 'pending',  label: 'Pending' },
   { key: 'review',   label: 'Needs review' },
   { key: 'rejected', label: 'Rejected' },
   { key: 'novideo',  label: 'No video' },
@@ -34,7 +36,7 @@ function fmtDate(d: string) {
   return `${DAYS[date.getDay()]} ${Number(dd)} ${MONTHS[Number(mm) - 1]} ${yyyy}`
 }
 
-const VALID_STATUSES = new Set<string>(['verified', 'review', 'rejected', 'novideo'])
+const VALID_STATUSES = new Set<string>(['pending', 'verified', 'review', 'rejected', 'novideo'])
 
 function statusOf(v: Video): MatchStatus {
   const s = v.match_status
@@ -129,7 +131,7 @@ export default function AdminPage() {
       return next
     })
 
-  const counts: Record<FilterKey, number> = { all: tracks.length, verified: 0, review: 0, rejected: 0, novideo: 0 }
+  const counts: Record<FilterKey, number> = { all: tracks.length, pending: 0, verified: 0, review: 0, rejected: 0, novideo: 0 }
   tracks.forEach(t => counts[statusOf(t)]++)
   const verifiedPct = tracks.length ? Math.round((counts.verified / tracks.length) * 100) : 0
   const needsAttention = counts.review + counts.rejected + counts.novideo
