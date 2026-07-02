@@ -23,7 +23,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'verified', label: 'Verified' },
 ]
 
-const COLS = '38px minmax(110px,0.9fr) minmax(120px,1fr) minmax(280px,1.8fr) 132px 104px'
+const COLS = '38px 52px minmax(110px,0.9fr) minmax(120px,1fr) minmax(280px,1.8fr) 132px 104px'
 
 const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 const DAYS   = ['SUN','MON','TUE','WED','THU','FRI','SAT']
@@ -399,6 +399,7 @@ export default function AdminPage() {
           position: 'sticky', top: 0, background: '#0d0e11', zIndex: 10,
         }}>
           <span><Checkbox checked={allShownSelected} indeterminate={someShownSelected && !allShownSelected} onChange={toggleSelectAll} /></span>
+          <span>ID</span>
           <span>Artist</span>
           <span>Title</span>
           <span>Matched YouTube video</span>
@@ -488,6 +489,10 @@ function TrackRow({ track, onSetStatus, onFix, selected, onToggle, anySelected }
           ? <Checkbox checked={selected} onChange={() => onToggle(track.id)} />
           : <span style={{ font: "500 13px 'IBM Plex Mono',monospace", color: '#6b727f' }}>{String(track.position).padStart(2, '0')}</span>
         }
+      </span>
+
+      <span style={{ font: "400 11px 'IBM Plex Mono',monospace", color: '#4d5460' }}>
+        {track.id}
       </span>
 
       <span style={{ paddingRight: 10, fontSize: 13.5, fontWeight: 500, color: '#e6e8ec', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
