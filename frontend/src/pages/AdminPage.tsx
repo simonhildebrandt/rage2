@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { getPlaylists, getPlaylist, type Playlist, type Video } from '../api/playlists'
 import { patchVideoStatus, patchVideoMatch, searchYoutubeMatches, rescrapePlaylist, triggerScrape, retryYoutube, getIssueNeighbours, getPlaylistNeighbours, getAdminStatus, type YouTubeResult, type IssueNeighbours } from '../api/admin'
-import { searchArchive } from '../api/search'
+import { searchArchive, type SearchResult } from '../api/search'
 
 type MatchStatus = 'pending' | 'verified' | 'review' | 'rejected' | 'novideo'
 type FilterKey = 'all' | MatchStatus
@@ -62,7 +62,7 @@ export default function AdminPage() {
   const [globalUnverified, setGlobalUnverified] = useState<number | null>(null)
   const [retryingYoutube, setRetryingYoutube] = useState(false)
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null)
-  const [comboResults, setComboResults] = useState<Playlist[]>([])
+  const [comboResults, setComboResults] = useState<SearchResult[]>([])
   const [comboSearching, setComboSearching] = useState(false)
 
   useEffect(() => {
@@ -104,11 +104,8 @@ export default function AdminPage() {
     const timer = setTimeout(async () => {
       setComboSearching(true)
       try {
-        const results = await searchArchive({ q: comboQuery, mode: 'date' })
-        setComboResults(results.map(r => ({
-          id: r.playlist_id, aired_date: r.aired_date, title: r.playlist_title,
-          source_url: '', scraped_at: '',
-        })))
+        const results = await searchArchive({ q: comboQuery, mode: 'all' })
+        setComboResults(results)
       } finally {
         setComboSearching(false)
       }
@@ -138,7 +135,7 @@ export default function AdminPage() {
 
   const shown = filter === 'all' ? tracks : tracks.filter(t => statusOf(t) === filter)
 
-  const filteredPlaylists = comboQuery.trim() ? comboResults : playlists
+  const filteredPlaylists = comboQuery.trim() ? [] : playlists
 
   const allShownSelected = shown.length > 0 && shown.every(t => selectedIds.has(t.id))
   const someShownSelected = shown.some(t => selectedIds.has(t.id))
@@ -261,17 +258,28 @@ export default function AdminPage() {
                     {comboSearching && (
                       <div style={{ padding: '10px 11px', font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>Searching…</div>
                     )}
-                    {!comboSearching && filteredPlaylists.length === 0 && (
+                    {!comboSearching && comboQuery.trim() && comboResults.length === 0 && (
                       <div style={{ padding: '10px 11px', font: "500 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>No results</div>
                     )}
-                    {filteredPlaylists.map(p => (
-                      <DropdownItem
-                        key={p.id}
-                        label={`${fmtDate(p.aired_date)}  ·  ${p.title}`}
-                        selected={p.id === selectedId}
-                        onClick={() => { setSelectedId(p.id); setSelectedPlaylist(p); setComboOpen(false); setComboQuery('') }}
-                      />
-                    ))}
+                    {comboQuery.trim()
+                      ? comboResults.map(r => (
+                          <DropdownItem
+                            key={`${r.playlist_id}-${r.video_id ?? 'date'}`}
+                            label={`${fmtDate(r.aired_date)}  ·  ${r.playlist_title}`}
+                            sublabel={r.match_type === 'track' ? `${r.track_artist} — ${r.track_title}${r.track_match_count && r.track_match_count > 1 ? ` (+${r.track_match_count - 1})` : ''}` : undefined}
+                            selected={r.playlist_id === selectedId}
+                            onClick={() => { setSelectedId(r.playlist_id); setComboOpen(false); setComboQuery('') }}
+                          />
+                        ))
+                      : filteredPlaylists.map(p => (
+                          <DropdownItem
+                            key={p.id}
+                            label={`${fmtDate(p.aired_date)}  ·  ${p.title}`}
+                            selected={p.id === selectedId}
+                            onClick={() => { setSelectedId(p.id); setSelectedPlaylist(p); setComboOpen(false); setComboQuery('') }}
+                          />
+                        ))
+                    }
                   </div>
                 </>
               )}
@@ -937,7 +945,7 @@ function ResultItem({ result, selected, onSelect }: {
   )
 }
 
-function DropdownItem({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+function DropdownItem({ label, sublabel, selected, onClick }: { label: string; sublabel?: string; selected: boolean; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
     <div
@@ -945,12 +953,13 @@ function DropdownItem({ label, selected, onClick }: { label: string; selected: b
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        padding: '9px 11px', borderRadius: 5,
-        fontSize: 13.5, fontWeight: 500, cursor: 'pointer',
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        padding: '9px 11px', borderRadius: 5, cursor: 'pointer',
         color: selected ? 'oklch(0.82 0.14 350)' : '#cdd2da',
         background: selected ? 'oklch(0.7 0.16 350 / .14)' : hovered ? '#1b1e25' : 'transparent',
       }}
-    >{label}</div>
+    >
+      <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+      {sublabel && <div style={{ fontSize: 11.5, color: selected ? 'oklch(0.72 0.1 350)' : '#6b727f', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sublabel}</div>}
+    </div>
   )
 }
