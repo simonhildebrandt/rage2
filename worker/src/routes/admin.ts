@@ -24,7 +24,7 @@ adminRoutes.post('/retry-youtube', async (c) => {
   return c.json({ ok: true })
 })
 
-const VALID_STATUSES = ['verified', 'review', 'rejected', 'novideo']
+const VALID_STATUSES = ['pending', 'verified', 'review', 'rejected', 'novideo']
 
 adminRoutes.patch('/videos/:id', async (c) => {
   const id = Number(c.req.param('id'))

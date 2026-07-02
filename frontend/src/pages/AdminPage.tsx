@@ -500,26 +500,36 @@ function TrackRow({ track, onSetStatus, onFix, selected, onToggle, anySelected }
 
       {/* Matched video */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0, paddingRight: 14 }}>
-        <div style={{
-          width: 60, height: 34, borderRadius: 3, flexShrink: 0, overflow: 'hidden',
-          background: 'linear-gradient(135deg,#1b1f27,#2b313d)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {track.thumbnail
-            ? <img src={track.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 12 }}>▶</span>
-          }
-        </div>
+        <a
+          href={track.youtube_id ? `https://www.youtube.com/watch?v=${track.youtube_id}` : undefined}
+          target="_blank" rel="noopener noreferrer"
+          style={{ flexShrink: 0, display: 'block', pointerEvents: track.youtube_id ? 'auto' : 'none' }}
+        >
+          <div style={{
+            width: 60, height: 34, borderRadius: 3, overflow: 'hidden',
+            background: 'linear-gradient(135deg,#1b1f27,#2b313d)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {track.thumbnail
+              ? <img src={track.thumbnail} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ color: 'rgba(255,255,255,.3)', fontSize: 12 }}>▶</span>
+            }
+          </div>
+        </a>
         <div style={{ minWidth: 0, flex: 1 }}>
           {track.youtube_id ? (
-            <>
+            <a
+              href={`https://www.youtube.com/watch?v=${track.youtube_id}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
               <div style={{ fontSize: 13, color: '#dfe3e9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {track.artist} — {track.title}
               </div>
               <div style={{ font: "400 11px 'IBM Plex Mono',monospace", color: '#6b727f', marginTop: 2 }}>
                 {track.youtube_id}
               </div>
-            </>
+            </a>
           ) : (
             <div style={{ font: "400 12px 'IBM Plex Mono',monospace", color: '#4d5460' }}>No match found</div>
           )}

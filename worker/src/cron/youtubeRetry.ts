@@ -1,13 +1,13 @@
 import type { Env } from '../types'
 import { getDb } from '../db/client'
 import { videos } from '../db/schema'
-import { isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 export async function requeueUnmatchedVideos(env: Env): Promise<void> {
   const unmatched = await getDb(env)
     .select({ id: videos.id, title: videos.title, artist: videos.artist })
     .from(videos)
-    .where(isNull(videos.youtube_id))
+    .where(eq(videos.match_status, 'pending'))
     .limit(100)
 
   for (const video of unmatched) {

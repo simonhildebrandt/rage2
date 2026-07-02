@@ -49,12 +49,15 @@ export async function searchYoutube(
 
   const data = await response.json() as YoutubeSearchResponse
   const item = data.items?.[0]
-  if (!item) return
+  if (!item) {
+    await db.update(videos).set({ match_status: 'review' }).where(eq(videos.id, video_id))
+    return
+  }
 
   const youtube_id = item.id.videoId
   const thumbnail = item.snippet.thumbnails.default.url
 
   await db.update(videos)
-    .set({ youtube_id, thumbnail })
+    .set({ youtube_id, thumbnail, match_status: 'verified' })
     .where(eq(videos.id, video_id))
 }

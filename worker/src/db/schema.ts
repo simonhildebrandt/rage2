@@ -21,5 +21,5 @@ export const videos = sqliteTable('videos', {
   label:       text('label'),
   youtube_id:   text('youtube_id'),
   thumbnail:    text('thumbnail'),
-  match_status: text('match_status').notNull().default('novideo'),
+  match_status: text('match_status').notNull().default('pending'),
 })

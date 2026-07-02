@@ -73,7 +73,7 @@ export async function scrapePlaylist(
 
   // D1 limits bound parameters per query; batch to stay under the limit
   const BATCH_SIZE = 10
-  const rows = parsed.map(v => ({ ...v, playlist_id }))
+  const rows = parsed.map(v => ({ ...v, playlist_id, match_status: 'pending' }))
   const insertedVideos: { id: number; title: string; artist: string }[] = []
 
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
