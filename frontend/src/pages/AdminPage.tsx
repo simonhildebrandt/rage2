@@ -268,7 +268,7 @@ export default function AdminPage() {
                             label={`${fmtDate(r.aired_date)}  ·  ${r.playlist_title}`}
                             sublabel={r.match_type === 'track' ? `${r.track_artist} — ${r.track_title}${r.track_match_count && r.track_match_count > 1 ? ` (+${r.track_match_count - 1})` : ''}` : undefined}
                             selected={r.playlist_id === selectedId}
-                            onClick={() => { setSelectedId(r.playlist_id); setComboOpen(false); setComboQuery('') }}
+                            onClick={() => { setSelectedId(r.playlist_id); setSelectedPlaylist(playlists.find(p => p.id === r.playlist_id) ?? null); setComboOpen(false); setComboQuery('') }}
                           />
                         ))
                       : filteredPlaylists.map(p => (
