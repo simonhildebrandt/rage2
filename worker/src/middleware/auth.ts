@@ -10,6 +10,7 @@ export const authMiddleware = createMiddleware<{ Bindings: Env }>(async (c, next
   try {
     const secret = new TextEncoder().encode(c.env.LOGIN_WITH_LINK_SECRET)
     const { payload } = await jwtVerify(token, secret)
+    if (payload.email !== 'simonhildebrandt@gmail.com') return c.json({ error: 'Forbidden' }, 403)
     c.set('user' as never, payload)
   } catch {
     return c.json({ error: 'Invalid token' }, 401)
