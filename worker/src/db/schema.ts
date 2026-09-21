@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core'
 
 export const playlists = sqliteTable('playlists', {
   id:         integer('id').primaryKey({ autoIncrement: true }),
@@ -8,7 +8,9 @@ export const playlists = sqliteTable('playlists', {
   updated_at: text('updated_at').notNull(),
   scraped_at: text('scraped_at'),
   source_url: text('source_url').notNull(),
-})
+}, (table) => [
+  index('playlists_aired_date_idx').on(table.aired_date),
+])
 
 export const videos = sqliteTable('videos', {
   id:          integer('id').primaryKey({ autoIncrement: true }),
@@ -22,4 +24,6 @@ export const videos = sqliteTable('videos', {
   youtube_id:   text('youtube_id'),
   thumbnail:    text('thumbnail'),
   match_status: text('match_status').notNull().default('pending'),
-})
+}, (table) => [
+  index('videos_playlist_id_idx').on(table.playlist_id),
+])
