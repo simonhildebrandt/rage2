@@ -26,4 +26,5 @@ export const videos = sqliteTable('videos', {
   match_status: text('match_status').notNull().default('pending'),
 }, (table) => [
   index('videos_playlist_id_idx').on(table.playlist_id),
+  index('videos_artist_title_idx').on(table.artist, table.title),
 ])

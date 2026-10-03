@@ -1,0 +1,1 @@
+CREATE INDEX `videos_artist_title_idx` ON `videos` (`artist`,`title`);
